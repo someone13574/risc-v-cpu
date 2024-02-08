@@ -1,19 +1,26 @@
 module instruction_decoder(
-	input [31:0] instruction,
 	input clk,
-	output microcode,
-	output [4:0] rd,
-	output [4:0] rs1,
-	output [4:0] rs2,
-	output [31:0] immedate, 
+	input [31:0] instruction,
+	output [15:0] microcode,
+	output [4:0] rd_addr,
+	output [4:0] rs1_addr,
+	output [4:0] rs2_addr,
+	output [11:0] i_imm_11_0,
+	output [11:0] s_imm_11_0,
+	output [19:0] u_imm_31_12
 );
 
 reg [8:0] microcode_lookup;
+rom microcode_rom(
+				.addr(microcode_lookup[5:0]),
+				.clk(clk),
+				.data(microcode)
+			 );
 
 always @(instruction) begin
 	// Get opcode data: wxyzzzzzz. w = env-func, x = use func-7, y = use func-3, z = offset
 	// Some func3's are missing values, weave in single opcode vals
-	case instruction[6:2]
+	case(instruction[6:2])
 		5'b01101: microcode_lookup = 9'h002; // LUI, addr = 0x2
 		5'b00101: microcode_lookup = 9'h003; // AUIPC, addr = 0x3
 		5'b11011: microcode_lookup = 9'h00b; // JAL, addr = 0xb
@@ -25,17 +32,29 @@ always @(instruction) begin
 		5'b01100: microcode_lookup = 9'h05a; // ops, offset = 0x1a
 		5'b00011: microcode_lookup = 9'h024; // FENCE, addr = 0x24
 		5'b11100: microcode_lookup = 9'h025; // environment, offset = 0x25
+		default : microcode_lookup = 9'b0;
 	endcase
 	
-	microcode_lookup[5:0] += {3'b0, instruction[14:12] | {3{microcode_lookup[6]}}};
-	microcode_lookup[5:0] += {2'b0, instruction[30] | microcode_lookup[7], 3'b0};
-	microcode_lookup[5:0] += {7'b0, instruction[20] | microcode_lookup[8]};
+	microcode_lookup[5:0] = microcode_lookup[5:0] + {3'b0, instruction[14:12] & {3{microcode_lookup[6]}}} + {2'b0, instruction[30] & microcode_lookup[7], 3'b0} + {5'b0, instruction[20] & microcode_lookup[8]};
 end
 
-
+assign rd_addr = instruction[11:7];
+assign rs1_addr = instruction[19:15];
+assign rs2_addr = instruction[24:20];
+assign i_imm_11_0 = instruction[31:20];
+assign s_imm_11_0 = {instruction[31:25], instruction[11:7]};
+assign u_imm_31_12 = instruction[31:12];
 
 endmodule
 
+// Microcode format
+// fedcba9876543210
+// 0 = has rd
+// 1 = has rs1
+// 2 = has rs2
+
+
+// Instructions
 
 //     01101 u-type LUI   (load upper immediate)
 //     00101 u-type AUIPC (add upper immediate to pc)

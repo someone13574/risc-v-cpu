@@ -1,11 +1,11 @@
 module rom(
-	input [7:0] addr,
+	input [5:0] addr,
 	input clk,
-	output reg [7:0] data
+	output reg [15:0] data
 );
 
-reg [7:0] rom[0:255];
-initial $readmemh("microcode.mem", rom, 0, 255);
+reg [15:0] rom[0:63];
+initial $readmemh("microcode.mem", rom, 0, 63);
 
 always @(posedge clk) begin
 	data <= rom[addr];
