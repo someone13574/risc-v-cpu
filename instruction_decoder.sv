@@ -47,13 +47,6 @@ assign u_imm_31_12 = instruction[31:12];
 
 endmodule
 
-// Microcode format
-// fedcba9876543210
-// 0 = has rd
-// 1 = has rs1
-// 2 = has rs2
-
-
 // Instructions
 
 //     01101 u-type LUI   (load upper immediate)
