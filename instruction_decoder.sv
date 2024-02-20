@@ -1,49 +1,42 @@
 module instruction_decoder(
 	input clk,
 	input [31:0] instruction,
-	output [15:0] microcode,
-	output [4:0] rd_addr,
-	output [4:0] rs1_addr,
-	output [4:0] rs2_addr,
-	output [11:0] i_imm_11_0,
-	output [11:0] s_imm_11_0,
-	output [19:0] u_imm_31_12
+	output [23:0] microcode,
+	output reg [24:0] instruction_data
 );
 
 reg [8:0] microcode_lookup;
+
 rom microcode_rom(
-				.addr(microcode_lookup[5:0]),
-				.clk(clk),
-				.data(microcode)
-			 );
+	.clk(clk),
+	.addr(microcode_lookup[5:0]),
+	.data(microcode)
+);
 
 always @(instruction) begin
 	// Get opcode data: wxyzzzzzz. w = env-func, x = use func-7, y = use func-3, z = offset
 	// Some func3's are missing values, weave in single opcode vals
-	case(instruction[6:2])
-		5'b01101: microcode_lookup = 9'h002; // LUI, addr = 0x2
-		5'b00101: microcode_lookup = 9'h003; // AUIPC, addr = 0x3
-		5'b11011: microcode_lookup = 9'h00b; // JAL, addr = 0xb
-		5'b11001: microcode_lookup = 9'h023; // JALR, addr = 0x24
-		5'b11000: microcode_lookup = 9'h040; // branching, offset = 0x0
-		5'b00000: microcode_lookup = 9'h048; // loading, offset = 0x8
-		5'b01000: microcode_lookup = 9'h04e; // storing, offset = 0xe
-		5'b00100: microcode_lookup = 9'h051; // immediate ops, offset = 0x11
-		5'b01100: microcode_lookup = 9'h05a; // ops, offset = 0x1a
-		5'b00011: microcode_lookup = 9'h024; // FENCE, addr = 0x24
-		5'b11100: microcode_lookup = 9'h025; // environment, offset = 0x25
-		default : microcode_lookup = 9'b0;
+	case(instruction[6:1])
+		6'b011011: microcode_lookup = 9'h003; // LUI, addr = 0x3
+		6'b001011: microcode_lookup = 9'h004; // AUIPC, addr = 0x4
+		6'b110111: microcode_lookup = 9'h00c; // JAL, addr = 0xc
+		6'b110011: microcode_lookup = 9'h024; // JALR, addr = 0x25
+		6'b110001: microcode_lookup = 9'h041; // branching, offset = 0x1
+		6'b000001: microcode_lookup = 9'h049; // loading, offset = 0x9
+		6'b010001: microcode_lookup = 9'h04f; // storing, offset = 0xf
+		6'b001001: microcode_lookup = 9'h052; // immediate ops, offset = 0x12
+		6'b011001: microcode_lookup = 9'h05b; // ops, offset = 0x1b
+		6'b000111: microcode_lookup = 9'h025; // FENCE, addr = 0x25
+		6'b111001: microcode_lookup = 9'h026; // environment, offset = 0x26
+		default : microcode_lookup = 9'b0; // null, offset = 0x0
 	endcase
 	
-	microcode_lookup[5:0] = microcode_lookup[5:0] + {3'b0, instruction[14:12] & {3{microcode_lookup[6]}}} + {2'b0, instruction[30] & microcode_lookup[7], 3'b0} + {5'b0, instruction[20] & microcode_lookup[8]};
+	microcode_lookup[5:0] <= microcode_lookup[5:0] + {3'b0, instruction[14:12] & {3{microcode_lookup[6]}}} + {2'b0, instruction[30] & microcode_lookup[7], 3'b0} + {5'b0, instruction[20] & microcode_lookup[8]};
 end
 
-assign rd_addr = instruction[11:7];
-assign rs1_addr = instruction[19:15];
-assign rs2_addr = instruction[24:20];
-assign i_imm_11_0 = instruction[31:20];
-assign s_imm_11_0 = {instruction[31:25], instruction[11:7]};
-assign u_imm_31_12 = instruction[31:12];
+always @(posedge clk) begin
+	instruction_data <= instruction[31:7];
+end
 
 endmodule
 
