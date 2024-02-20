@@ -192,25 +192,25 @@ endmodule
 // microcode_s3 = write regs & pc
 
 // microcode format
-//  0 (0):  connect upper immediate to reg data in (s3)
-//  1 (1):  reg write enable (s3)
-//  2 (2):  connect reg_data_out_a to alu_a (s1)
-//  3 (3):  connect sext lower immediate to alu_b (s1)
-//  4 (4):  connect buffered_alu_out to reg data in (s3)
-//  5 (5):  check rs1 reg lock (s0)
-//  6 (6):  connect alu_out to mem_addr (s2)
-//  7 (7):  check rs2 reg lock (s0)
-//  8 (8):  connect reg_data_out_b to alu_b (s1)
-//  9 (9):  connect mem_data to reg_data_in (s3)
-//  a (10): mem write enable (s2)
-//  b (11): connect reg_data_out_b_buffer to mem_data (s2)
-//  c (12): connect sext lower split immediate to alu_b (s1)
-//  d (13): connect upper immediate to alu_a (s1)
-//  e (14): connect inst_pc to alu_b (s1)
-//  f (15): connect return_addr to reg_data_in (s3)
-// 00 (16): connect sext_j_type_immediate_s1 to alu_a (s1)
-// 01 (17): pc write buffered_alu_out if ~prev_not_branch
-// 02 (18): connect sext_b_type_immediate_s1 to alu_a (s1)
+//  -0 (0):  connect upper immediate to reg data in (s3)
+//  -1 (1):  reg write enable (s3)
+//  -2 (2):  connect reg_data_out_a to alu_a (s1)
+//  -3 (3):  connect sext lower immediate to alu_b (s1)
+//  -4 (4):  connect buffered_alu_out to reg data in (s3)
+//  -5 (5):  check rs1 reg lock (s0)
+//  -6 (6):  connect alu_out to mem_addr (s2)
+//  -7 (7):  check rs2 reg lock (s0)
+//  -8 (8):  connect reg_data_out_b to alu_b (s1)
+//  -9 (9):  connect mem_data to reg_data_in (s3)
+//  -a (10): mem write enable (s2)
+//  -b (11): connect reg_data_out_b_buffer to mem_data (s2)
+//  -c (12): connect sext lower split immediate to alu_b (s1)
+//  -d (13): connect upper immediate to alu_a (s1)
+//  -e (14): connect inst_pc to alu_b (s1)
+//  -f (15): connect return_addr to reg_data_in (s3)
+// -00 (16): connect sext_j_type_immediate_s1 to alu_a (s1)
+// 01 (17): pc write buffered_alu_out if ~prev_not_branch (s3)
+// -02 (18): connect sext_b_type_immediate_s1 to alu_a (s1)
 // 03 (19):
 // 04 (20): 
 // 05 (21): 
@@ -220,7 +220,7 @@ endmodule
 // 0x42 = 1000010
 
 //     76543210 fedcba9876543210
-//     00001000 0000000000100110
+//     00000000 0000000000000011
 //
 // [*] 00000000 0000000000000011 = LUI    (example: 000420b7)
 // [*] 00000000 0110000000010010 = AUIPC  (example: 00042097)
