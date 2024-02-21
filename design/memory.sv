@@ -15,7 +15,7 @@ always @(posedge clk) begin
 	if (write_enable) begin
 		mem[addr[31:2]] <= data;
 	end
-	
+
 	data_out <= mem[addr[31:2]];
 end
 

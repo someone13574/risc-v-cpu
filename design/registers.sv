@@ -15,7 +15,7 @@ always @(posedge clk) begin
 	if (write_enable & write_addr != 0) begin
 		mem[write_addr] <= data;
 	end
-	
+
 	out_a <= mem[read_addr_a];
 	out_b <= mem[read_addr_b];
 end
