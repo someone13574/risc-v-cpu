@@ -1,12 +1,30 @@
 module risc_v_core(
-	input clk
+	input clk,
+	output reg [29:0] pc,
+	output [31:0] instruction,
+	output reg_write_enable_s3,
+	output [31:0] reg_data_in_s3,
+	output [31:0] alu_a_s1,
+	output [31:0] alu_b_s1,
+	output [31:0] alu_out_s2,
+	output [31:0] microcode_s0,
+	output reg [31:0] microcode_s1,
+	output reg [31:0] microcode_s2,
+	output reg [31:0] microcode_s3,
+	output s1_data_dependency,
+	output s2_data_dependency,
+	output s3_data_dependency,
+	output [4:0] rs1_s0,
+	output [4:0] rd_s1,
+	output [4:0] rd_s2,
+	output [4:0] rd_s3
 );
 
-wire reg_write_enable_s3;
+// wire reg_write_enable_s3;
 wire [4:0] reg_read_addr_a_s0;
 wire [4:0] reg_read_addr_b_s0;
 wire [4:0] reg_write_addr_s3;
-wire [31:0] reg_data_in_s3;
+// wire [31:0] reg_data_in_s3;
 wire [31:0] reg_data_out_a_s1;
 wire [31:0] reg_data_out_b_s1;
 
@@ -45,9 +63,9 @@ memory ram(
 	.data(mem_data)
 );
 
-wire [31:0] alu_a_s1;
-wire [31:0] alu_b_s1;
-wire [31:0] alu_out_s2;
+// wire [31:0] alu_a_s1;
+// wire [31:0] alu_b_s1;
+// wire [31:0] alu_out_s2;
 
 assign alu_a_s1 = (microcode_s1[0]) ? reg_data_out_a_s1 :
 			      (microcode_s1[1]) ? upper_immediate_s1 :
@@ -66,14 +84,18 @@ alu alu(
 	.out(alu_out_s2)
 );
 
-wire [4:0] rs1_s0 = instruction_data_s0[12:8];
+// wire [4:0] rs1_s0 = instruction_data_s0[12:8];
+assign rs1_s0 = instruction_data_s0[12:8];
 wire [4:0] rs1_s1 = instruction_data_s0[12:8];
 
 wire [4:0] rs2_s0 = instruction_data_s0[12:8];
 
-wire [4:0] rd_s1 = instruction_data_s1[4:0];
-wire [4:0] rd_s2 = instruction_data_s2[4:0];
-wire [4:0] rd_s3 = instruction_data_s3[4:0];
+// wire [4:0] rd_s1 = instruction_data_s1[4:0];
+// wire [4:0] rd_s2 = instruction_data_s2[4:0];
+// wire [4:0] rd_s3 = instruction_data_s3[4:0];
+assign rd_s1 = instruction_data_s1[4:0];
+assign rd_s2 = instruction_data_s2[4:0];
+assign rd_s3 = instruction_data_s3[4:0];
 
 wire [31:0] upper_immediate_s1 = {instruction_data_s1[24:5], 12'b0};
 wire [31:0] upper_immediate_s3 = {instruction_data_s3[24:5], 12'b0};
@@ -83,28 +105,35 @@ wire [31:0] sext_j_type_immediate_s1 = {{12{instruction_data_s1[24]}}, instructi
 wire [31:0] sext_b_type_immediate_s1 = {{20{instruction_data_s1[24]}}, instruction_data_s1[7], instruction_data_s1[23:18], instruction_data_s1[11:8], 1'b0};
 wire [31:0] sext_s_type_immediate_s1 = {{21{instruction_data_s1[24]}}, instruction_data_s1[23:18], instruction_data_s1[4:0]};
 
-wire [31:0] microcode_s0;
+// wire [31:0] microcode_s0;
+// wire [31:0] instruction = (microcode_s2[9] | microcode_s2[16]) ? 32'b00000000 : mem_data;
+assign instruction = (microcode_s2[9] | microcode_s2[16]) ? 32'b00000000 : mem_data;
+wire [24:0] instruction_data_s0;
 
 instruction_decoder decoder(
 	.clk(clk),
-	.instruction(mem_data),
+	.instruction(instruction),
 	.microcode(microcode_s0),
 	.instruction_data(instruction_data_s0)
 );
 
-wire s1_data_dependency = (rs1_s0 == rd_s1 | rs2_s0 == rd_s1) & microcode_s1[12];
-wire s2_data_dependency = (rs1_s0 == rd_s2 | rs2_s0 == rd_s2) & microcode_s2[12];
-wire s3_data_dependency = (rs1_s0 == rd_s3 | rs2_s0 == rd_s3) & microcode_s3[12];
-reg [1:0] hold;
+wire rs1_read = microcode_s0[0];
+wire rs2_read = microcode_s0[4] | microcode_s0[11];
+
+assign s1_data_dependency = (((rs1_s0 == rd_s1) & rs1_read) | ((rs2_s0 == rd_s1) & rs2_read)) & microcode_s1[12];
+assign s2_data_dependency = (((rs1_s0 == rd_s2) & rs1_read) | ((rs2_s0 == rd_s2) & rs2_read)) & microcode_s2[12];
+assign s3_data_dependency = (((rs1_s0 == rd_s3) & rs1_read) | ((rs2_s0 == rd_s3) & rs2_read)) & microcode_s3[12];
+
+reg [2:0] reg_hold;
 
 wire branch_pause_pc = microcode_s1[17] | microcode_s2[17] | microcode_s3[17];
 reg branch_s2;
 reg branch_s3;
 
-reg [29:0] pc;
-reg [31:0] microcode_s1;
-reg [31:0] microcode_s2;
-reg [31:0] microcode_s3;
+// reg [29:0] pc;
+// reg [31:0] microcode_s1;
+// reg [31:0] microcode_s2;
+// reg [31:0] microcode_s3;
 reg [24:0] instruction_data_s1;
 reg [24:0] instruction_data_s2;
 reg [24:0] instruction_data_s3;
@@ -122,36 +151,36 @@ always @(posedge clk) begin
 		end
 	end else begin
 		if (s1_data_dependency) begin
-			pc <= pc - 30'd4;
-		end else if (s2_data_dependency) begin
 			pc <= pc - 30'd3;
-		end else if (s3_data_dependency) begin
+		end else if (s2_data_dependency) begin
 			pc <= pc - 30'd2;
-		end else begin
+		end else if (s3_data_dependency) begin
+			pc <= pc - 30'd1;
+		end else if (~(microcode_s1[9] | microcode_s1[16])) begin
 			pc <= pc + 30'b1;
 		end
 	end
 
 	if (s1_data_dependency) begin
-		hold <= 2'b11;
+		reg_hold <= 3'b111;
 	end else if (s2_data_dependency) begin
-		hold <= 2'b01;
+		reg_hold <= 3'b11;
 	end else begin
-		hold <= hold >> 1;
+		reg_hold <= reg_hold >> 1;
 	end
 
 	case (microcode_s1[28:26])
 		3'b000: branch_s2 <= reg_data_out_a_s1 == reg_data_out_b_s1;                   // equal
 		3'b001: branch_s2 <= reg_data_out_a_s1 != reg_data_out_b_s1;                   // not equal
 		3'b010: branch_s2 <= $signed(reg_data_out_a_s1) < $signed(reg_data_out_b_s1);  // less than signed
-		3'b111: branch_s2 <= $signed(reg_data_out_a_s1) >= $signed(reg_data_out_b_s1); // greater equal signed
+		3'b011: branch_s2 <= $signed(reg_data_out_a_s1) >= $signed(reg_data_out_b_s1); // greater equal signed
 		3'b100: branch_s2 <= reg_data_out_a_s1 < reg_data_out_b_s1;                    // less than unsigned
 		3'b111: branch_s2 <= reg_data_out_a_s1 >= reg_data_out_b_s1;                   // greater equal signed
 		3'b110: branch_s2 <= 1'b1;                                                     // true
 	endcase
 	branch_s3 <= branch_s2;
 
-	microcode_s1 <= (s1_data_dependency | s2_data_dependency | s3_data_dependency | hold[0]) ? 32'b00000000 : microcode_s0;
+	microcode_s1 <= (s1_data_dependency | s2_data_dependency | s3_data_dependency | reg_hold[0]) ? 32'b00000000 : microcode_s0;
 	microcode_s2 <= microcode_s1;
 	microcode_s3 <= microcode_s2;
 	instruction_data_s1 <= instruction_data_s0;

@@ -305,7 +305,7 @@ pub fn generate_microcode() -> String {
                 idx
             )
         })
-        .chain((0..65 - operations.len()).map(|_| "0000000".to_string()))
+        .chain((0..64 - operations.len()).map(|_| "0000000".to_string()))
         .collect::<Vec<String>>()
         .join("\n")
 }
