@@ -6,12 +6,9 @@ MEMORY
 
 SECTIONS
 {
-    .entry :
-    {
-        *(.entry*)
-    } > rom
     .text :
     {
+        *(.text*._start)
         *(.text*)
     } > rom
     .rodata :
