@@ -17,7 +17,14 @@ module risc_v_core(
 	output [4:0] rs1_s0,
 	output [4:0] rd_s1,
 	output [4:0] rd_s2,
-	output [4:0] rd_s3
+	output [4:0] rd_s3,
+	output reg branch_s2,
+	output reg branch_s3,
+	output [31:0] reg_data_out_a_s1,
+	output [31:0] reg_data_out_b_s1,
+	output [31:0] mem_data,
+	output [31:0] mem_addr,
+	output reg [31:0] alu_out_s3
 );
 
 // wire reg_write_enable_s3;
@@ -25,8 +32,8 @@ wire [4:0] reg_read_addr_a_s0;
 wire [4:0] reg_read_addr_b_s0;
 wire [4:0] reg_write_addr_s3;
 // wire [31:0] reg_data_in_s3;
-wire [31:0] reg_data_out_a_s1;
-wire [31:0] reg_data_out_b_s1;
+//wire [31:0] reg_data_out_a_s1;
+//wire [31:0] reg_data_out_b_s1;
 
 assign reg_write_enable_s3 = microcode_s3[12];
 assign reg_read_addr_a_s0 = rs1_s0;
@@ -49,8 +56,8 @@ registers regs(
 );
 
 wire mem_write_enable_s2;
-wire [31:0] mem_addr;
-wire [31:0] mem_data;
+// wire [31:0] mem_addr;
+// wire [31:0] mem_data;
 
 assign mem_write_enable_s2 = microcode_s2[9];
 assign mem_addr = (microcode_s2[10]) ? alu_out_s2 : {pc, 2'b0};
@@ -107,7 +114,7 @@ wire [31:0] sext_s_type_immediate_s1 = {{21{instruction_data_s1[24]}}, instructi
 
 // wire [31:0] microcode_s0;
 // wire [31:0] instruction = (microcode_s2[9] | microcode_s2[16]) ? 32'b00000000 : mem_data;
-assign instruction = (microcode_s2[9] | microcode_s2[16]) ? 32'b00000000 : mem_data;
+assign instruction = (microcode_s2[9] | microcode_s2[16] | microcode_s0[17] | branch_pause_pc) ? 32'b00000000 : mem_data;
 wire [24:0] instruction_data_s0;
 
 instruction_decoder decoder(
@@ -127,8 +134,8 @@ assign s3_data_dependency = (((rs1_s0 == rd_s3) & rs1_read) | ((rs2_s0 == rd_s3)
 reg [2:0] reg_hold;
 
 wire branch_pause_pc = microcode_s1[17] | microcode_s2[17] | microcode_s3[17];
-reg branch_s2;
-reg branch_s3;
+//reg branch_s2;
+//reg branch_s3;
 
 // reg [29:0] pc;
 // reg [31:0] microcode_s1;
@@ -141,7 +148,7 @@ reg [24:0] instruction_data_s3;
 reg [29:0] inst_pc_s1;
 reg [29:0] ret_addr_s3;
 
-reg [31:0] alu_out_s3;
+// reg [31:0] alu_out_s3;
 reg [31:0] reg_data_out_b_s2;
 
 always @(posedge clk) begin
@@ -170,13 +177,14 @@ always @(posedge clk) begin
 	end
 
 	case (microcode_s1[28:26])
-		3'b000: branch_s2 <= reg_data_out_a_s1 == reg_data_out_b_s1;                   // equal
-		3'b001: branch_s2 <= reg_data_out_a_s1 != reg_data_out_b_s1;                   // not equal
-		3'b010: branch_s2 <= $signed(reg_data_out_a_s1) < $signed(reg_data_out_b_s1);  // less than signed
-		3'b011: branch_s2 <= $signed(reg_data_out_a_s1) >= $signed(reg_data_out_b_s1); // greater equal signed
-		3'b100: branch_s2 <= reg_data_out_a_s1 < reg_data_out_b_s1;                    // less than unsigned
-		3'b111: branch_s2 <= reg_data_out_a_s1 >= reg_data_out_b_s1;                   // greater equal signed
-		3'b110: branch_s2 <= 1'b1;                                                     // true
+		3'b000: branch_s2 <= 1'b0;
+		3'b001: branch_s2 <= reg_data_out_a_s1 == reg_data_out_b_s1;                   // equal
+		3'b010: branch_s2 <= reg_data_out_a_s1 != reg_data_out_b_s1;                   // not equal
+		3'b011: branch_s2 <= $signed(reg_data_out_a_s1) < $signed(reg_data_out_b_s1);  // less than signed
+		3'b100: branch_s2 <= $signed(reg_data_out_a_s1) >= $signed(reg_data_out_b_s1); // greater equal signed
+		3'b101: branch_s2 <= reg_data_out_a_s1 < reg_data_out_b_s1;                    // less than unsigned
+		3'b110: branch_s2 <= reg_data_out_a_s1 >= reg_data_out_b_s1;                   // greater equal signed
+		3'b111: branch_s2 <= 1'b1;                                                     // true
 	endcase
 	branch_s3 <= branch_s2;
 

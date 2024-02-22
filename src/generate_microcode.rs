@@ -55,24 +55,24 @@ const fn decode_alu_op(alu_op: AluOp) -> u32 {
 
 // Branch comparison microcode signals
 enum CmpOp {
-    Equal,                // 000
-    NotEqual,             // 001
-    LessThan,             // 010
-    GreaterEqual,         // 011
-    LessThanUnsigned,     // 100
-    GreaterEqualUnsigned, // 101
-    True,                 // 110
+    Equal,                // 001
+    NotEqual,             // 010
+    LessThan,             // 011
+    GreaterEqual,         // 100
+    LessThanUnsigned,     // 101
+    GreaterEqualUnsigned, // 110
+    True,                 // 111
 }
 
 const fn decode_branch_cmp_op(cmp_op: CmpOp) -> u32 {
     let bits = match cmp_op {
-        CmpOp::Equal => 0b000,
-        CmpOp::NotEqual => 0b001,
-        CmpOp::LessThan => 0b010,
-        CmpOp::GreaterEqual => 0b011,
-        CmpOp::LessThanUnsigned => 0b100,
-        CmpOp::GreaterEqualUnsigned => 0b101,
-        CmpOp::True => 0b110,
+        CmpOp::Equal => 0b001,
+        CmpOp::NotEqual => 0b010,
+        CmpOp::LessThan => 0b011,
+        CmpOp::GreaterEqual => 0b100,
+        CmpOp::LessThanUnsigned => 0b101,
+        CmpOp::GreaterEqualUnsigned => 0b110,
+        CmpOp::True => 0b111,
     };
 
     bits << 26
@@ -300,12 +300,12 @@ pub fn generate_microcode() -> String {
         .map(|(idx, operation)| {
             format!(
                 "{} // {:<6} ({:#04X})",
-                &hex::encode_upper(operation.microcode.to_be_bytes())[1..],
+                &hex::encode_upper(operation.microcode.to_be_bytes()),
                 operation.id,
                 idx
             )
         })
-        .chain((0..64 - operations.len()).map(|_| "0000000".to_string()))
+        .chain((0..64 - operations.len()).map(|_| "00000000".to_string()))
         .collect::<Vec<String>>()
         .join("\n")
 }
