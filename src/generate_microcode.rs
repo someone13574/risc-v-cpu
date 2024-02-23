@@ -1,28 +1,37 @@
-// Main microcode signals
-const CONNECT_REG_OUT_A_TO_ALU_A: u32 = 1; // s1
-const CONNECT_UP_TO_ALU_A: u32 = 1 << 1; // s1
-const CONNECT_JT_TO_ALU_A: u32 = 1 << 2; // s1
-const CONNECT_BT_TO_ALU_A: u32 = 1 << 3; // s1
-const CONNECT_REG_OUT_B_TO_ALU_B: u32 = 1 << 4; // s1
-const CONNECT_LI_TO_ALU_B: u32 = 1 << 5; // s1
-const CONNECT_ST_TO_ALU_B: u32 = 1 << 6; // s1
-const CONNECT_INST_PC_TO_ALU_B: u32 = 1 << 7; // s1
-const CONNECT_RS2_TO_ALU_B: u32 = 1 << 8; // s1
-const MEM_WRITE_ENABLE: u32 = 1 << 9; // s2
-const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 10; // s2
-const CONNECT_REG_OUT_B_TO_MEM_DATA: u32 = 1 << 11; // s2
-const REG_WRITE_ENABLE: u32 = 1 << 12; // s3
-const CONNECT_UP_TO_REG_DATA_IN: u32 = 1 << 13; // s3
-const CONNECT_ALU_OUT_TO_REG_DATA_IN: u32 = 1 << 14; // s3
-const CONNECT_RET_ADDR_TO_REG_DATA_IN: u32 = 1 << 15; // s3
-const CONNECT_MEM_DATA_TO_REG_DATA_IN: u32 = 1 << 16; // s3
-const WRITE_ALU_OUT_TO_PC_IF_BRANCH: u32 = 1 << 17; // s3
-const TRUNC_BYTE: u32 = 1 << 18; // s3
-const TRUNC_HALF: u32 = 1 << 19; // s3
-const TRUNC_SIGNED_BYTE: u32 = 1 << 20; // s3
-const TRUNC_SIGNED_HALF: u32 = 1 << 21; // s3
+// s0 signals
+const CHECK_RS1_DEP: u32 = 1;
+const CHECK_RS2_DEP: u32 = 1 << 1;
 
-// Alu microcode signals
+// s1 signals
+const CONNECT_REG_OUT_A_TO_ALU_A: u32 = 1 << 2;
+const CONNECT_UP_TO_ALU_A: u32 = 1 << 3;
+const CONNECT_JT_TO_ALU_A: u32 = 1 << 4;
+const CONNECT_BT_TO_ALU_A: u32 = 1 << 5;
+const CONNECT_REG_OUT_B_TO_ALU_B: u32 = 1 << 6;
+const CONNECT_LI_TO_ALU_B: u32 = 1 << 7;
+const CONNECT_ST_TO_ALU_B: u32 = 1 << 8;
+const CONNECT_INST_PC_TO_ALU_B: u32 = 1 << 9;
+const CONNECT_RS2_TO_ALU_B: u32 = 1 << 10;
+
+// s2 signals
+const MEM_WRITE_ENABLE: u32 = 1 << 11;
+const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 12;
+const CONNECT_REG_OUT_B_TO_MEM_DATA: u32 = 1 << 13;
+const JUMP_IF_BRANCH: u32 = 1 << 14;
+const MEM_IN_USE: u32 = 1 << 15;
+
+// s3 signals
+const REG_WRITE_ENABLE: u32 = 1 << 16;
+const CONNECT_UP_TO_REG_DATA_IN: u32 = 1 << 17;
+const CONNECT_ALU_OUT_TO_REG_DATA_IN: u32 = 1 << 18;
+const CONNECT_RET_ADDR_TO_REG_DATA_IN: u32 = 1 << 19;
+const CONNECT_MEM_DATA_TO_REG_DATA_IN: u32 = 1 << 20;
+const TRUNC_BYTE: u32 = 1 << 21; // and s2
+const TRUNC_HALF: u32 = 1 << 22; // and s2
+const TRUNC_SIGNED_BYTE: u32 = 1 << 23;
+const TRUNC_SIGNED_HALF: u32 = 1 << 24;
+
+// alu ops select (s1)
 enum AluOp {
     Add,                 // 0000
     Subtract,            // 0001
@@ -50,10 +59,10 @@ const fn decode_alu_op(alu_op: AluOp) -> u32 {
         AluOp::ShiftRightSignExt => 0b1001,
     };
 
-    bits << 22
+    bits << 25
 }
 
-// Branch comparison microcode signals
+// branch condition select (s1)
 enum CmpOp {
     Equal,                // 001
     NotEqual,             // 010
@@ -75,38 +84,49 @@ const fn decode_branch_cmp_op(cmp_op: CmpOp) -> u32 {
         CmpOp::True => 0b111,
     };
 
-    bits << 26
+    bits << 29
 }
 
 // Base microcode groupings
 const BRANCH_BASE_MICROCODE: u32 = CONNECT_BT_TO_ALU_A
     | CONNECT_INST_PC_TO_ALU_B
     | decode_alu_op(AluOp::Add)
-    | WRITE_ALU_OUT_TO_PC_IF_BRANCH;
+    | JUMP_IF_BRANCH
+    | CHECK_RS1_DEP
+    | CHECK_RS2_DEP;
 const LOAD_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
     | CONNECT_REG_OUT_A_TO_ALU_A
     | CONNECT_LI_TO_ALU_B
     | decode_alu_op(AluOp::Add)
     | CONNECT_ALU_OUT_TO_MEM_ADDR
-    | CONNECT_MEM_DATA_TO_REG_DATA_IN;
+    | CONNECT_MEM_DATA_TO_REG_DATA_IN
+    | CHECK_RS1_DEP
+    | MEM_IN_USE;
 const STORE_BASE_MICROCODE: u32 = MEM_WRITE_ENABLE
     | CONNECT_REG_OUT_B_TO_MEM_DATA
     | CONNECT_REG_OUT_A_TO_ALU_A
     | CONNECT_ST_TO_ALU_B
     | decode_alu_op(AluOp::Add)
-    | CONNECT_ALU_OUT_TO_MEM_ADDR;
+    | CONNECT_ALU_OUT_TO_MEM_ADDR
+    | CHECK_RS1_DEP
+    | CHECK_RS2_DEP
+    | MEM_IN_USE;
 const IMMEDIATE_ALU_OP_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
     | CONNECT_REG_OUT_A_TO_ALU_A
     | CONNECT_LI_TO_ALU_B
-    | CONNECT_ALU_OUT_TO_REG_DATA_IN;
+    | CONNECT_ALU_OUT_TO_REG_DATA_IN
+    | CHECK_RS1_DEP;
 const IMMEDIATE_SHIFT_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
     | CONNECT_REG_OUT_A_TO_ALU_A
     | CONNECT_RS2_TO_ALU_B
-    | CONNECT_ALU_OUT_TO_REG_DATA_IN;
+    | CONNECT_ALU_OUT_TO_REG_DATA_IN
+    | CHECK_RS1_DEP;
 const REGISTER_ALU_OP_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
     | CONNECT_REG_OUT_A_TO_ALU_A
     | CONNECT_REG_OUT_B_TO_ALU_B
-    | CONNECT_ALU_OUT_TO_REG_DATA_IN;
+    | CONNECT_ALU_OUT_TO_REG_DATA_IN
+    | CHECK_RS1_DEP
+    | CHECK_RS2_DEP;
 struct Operation {
     microcode: u32,
     id: String,
@@ -172,7 +192,7 @@ pub fn generate_microcode() -> String {
                 | CONNECT_JT_TO_ALU_A
                 | CONNECT_INST_PC_TO_ALU_B
                 | decode_alu_op(AluOp::Add)
-                | WRITE_ALU_OUT_TO_PC_IF_BRANCH
+                | JUMP_IF_BRANCH
                 | decode_branch_cmp_op(CmpOp::True),
             id: "jal".to_string(),
         },
@@ -273,8 +293,9 @@ pub fn generate_microcode() -> String {
                 | CONNECT_RET_ADDR_TO_REG_DATA_IN
                 | CONNECT_REG_OUT_A_TO_ALU_A
                 | CONNECT_LI_TO_ALU_B
-                | WRITE_ALU_OUT_TO_PC_IF_BRANCH
-                | decode_branch_cmp_op(CmpOp::True),
+                | JUMP_IF_BRANCH
+                | decode_branch_cmp_op(CmpOp::True)
+                | CHECK_RS1_DEP,
             id: "jalr".to_string(),
         },
         Operation {
