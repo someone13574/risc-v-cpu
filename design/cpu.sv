@@ -1,4 +1,4 @@
-module risc_v_core(
+module cpu(
     input clk,
     output [31:0] mem_addr,
     output [31:0] mem_data,
@@ -10,7 +10,14 @@ module risc_v_core(
     output [31:0] microcode_s2,
     output [31:0] microcode_s3,
     output reg_we,
-    output [4:0] hold
+    output [31:0] reg_out_a,
+    output [31:0] reg_out_b,
+    output [31:0] reg_in,
+    output [31:0] alu_a,
+    output [31:0] alu_b,
+    output [31:0] alu_out,
+    output branch,
+    output hold
 );
 
 // register module and connections
@@ -20,12 +27,12 @@ wire alu_out_to_reg_data_in;
 wire ret_addr_to_reg_data_in;
 wire mem_data_to_reg_data_in;
 
-wire [31:0] reg_out_a;
-wire [31:0] reg_out_b;
-wire [31:0] reg_in;
+// wire [31:0] reg_out_a;
+// wire [31:0] reg_out_b;
+// wire [31:0] reg_in;
 
 assign reg_in = (up_to_reg_data_in)       ? upper_immediate_s3 :
-                (alu_out_to_reg_data_in)  ? alu_out            :
+                (alu_out_to_reg_data_in)  ? alu_out_s3         :
                 (ret_addr_to_reg_data_in) ? {pc_s2, 2'b0}      :
                 (mem_data_to_reg_data_in) ? mem_data           : 32'b00000000;
 
@@ -69,10 +76,10 @@ wire st_to_alu_b;
 wire pc_to_alu_b;
 wire rs2_to_alu_b;
 
-wire [31:0] alu_a;
-wire [31:0] alu_b;
+//wire [31:0] alu_a;
+//wire [31:0] alu_b;
 wire [3:0] alu_op_select;
-wire [31:0] alu_out;
+//wire [31:0] alu_out;
 
 assign alu_a = (reg_out_a_to_alu_a) ? reg_out_a          :
                (up_to_alu_a)        ? upper_immediate_s1 :
@@ -122,6 +129,9 @@ control_unit cu(
     .clk(clk),
     .microcode_s0(microcode_s0),
     .instruction_data_s0(instruction_data_s0),
+    .jump_location(alu_out),
+    .reg_out_a(reg_out_a),
+    .reg_out_b(reg_out_b),
     .pc(pc),
     .pc_s1(pc_s1),
     .pc_s2(pc_s2),
@@ -149,10 +159,11 @@ control_unit cu(
     .ret_addr_to_reg_data_in(ret_addr_to_reg_data_in),
     .mem_data_to_reg_data_in(mem_data_to_reg_data_in),
     .block_inst(block_inst),
+    .branch(branch),
     .hold(hold)
 );
 
-// decoded instruction data
+// decode instruction data
 wire [4:0] rs1_s0 = instruction_data_s0[12:8];
 wire [4:0] rs2_s0 = instruction_data_s0[17:13];
 wire [4:0] rs2_s1 = instruction_data_s1[17:13];
@@ -166,4 +177,11 @@ wire [31:0] j_type_immediate = {{12{instruction_data_s1[24]}}, instruction_data_
 wire [31:0] b_type_immediate = {{20{instruction_data_s1[24]}}, instruction_data_s1[7], instruction_data_s1[23:18], instruction_data_s1[11:8], 1'b0};
 wire [31:0] s_type_immediate = {{21{instruction_data_s1[24]}}, instruction_data_s1[23:18], instruction_data_s1[4:0]};
 
+
+// buffer signals
+reg [31:0] alu_out_s3;
+
+always @(posedge clk) begin
+    alu_out_s3 <= alu_out;
+end
 endmodule

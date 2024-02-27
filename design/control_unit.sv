@@ -38,7 +38,9 @@ module control_unit(
     output load_trunc_uhalf,
     output load_trunc_sbyte,
     output load_trunc_shalf,
-    output block_inst
+    output block_inst,
+    output reg branch,
+    output reg hold
 );
 
 reg [29:0] pc_si;
@@ -50,48 +52,46 @@ reg [29:0] pc_s0;
 
 reg [24:0] instruction_data_s2;
 
-reg branch;
+// reg branch;
 wire data_dep_with_s1;
 wire data_dep_with_s2;
 wire data_dep_with_s3;
 wire data_dep;
 
-reg hold;
-reg write_held;
+// reg hold;
 reg [31:0] held_microcode;
+reg [24:0] held_instruction_data;
 
 assign data_dep_with_s1 = (((rs1_s0 == rd_s1) & check_rs1_dep) | ((rs2_s0 == rd_s1) & check_rs2_dep)) & reg_we_s1;
 assign data_dep_with_s2 = (((rs1_s0 == rd_s2) & check_rs1_dep) | ((rs2_s0 == rd_s2) & check_rs2_dep)) & reg_we_s2;
 assign data_dep_with_s3 = (((rs1_s0 == rd_s3) & check_rs1_dep) | ((rs2_s0 == rd_s3) & check_rs2_dep)) & reg_we;
 assign data_dep = data_dep_with_s1 | data_dep_with_s2 | data_dep_with_s3;
 
-assign block_inst = mem_in_use | data_dep | hold;
+wire block_for_branch = microcode_s0[14] | microcode_s1[14] | microcode_s2[14] | microcode_s3[14];
+assign block_inst = mem_in_use | data_dep | hold | block_for_branch;
 
 always @(posedge clk) begin
     if (jump_if_branch & branch) begin
         pc <= jump_location[31:2];
-    end else if (data_dep_with_s1) begin
+    end else if (data_dep_with_s1 & mem_in_use_s1) begin
+		pc_si <= pc_s0;
+    end else if (data_dep) begin
         pc <= pc_s0;
-    end else if (data_dep_with_s2 | data_dep_with_s3) begin
-        pc <= pc_si;
+    end else if (mem_in_use_s2) begin
+		pc <= pc_si;
     end else begin
 		pc <= pc + 30'b1;
     end
 
-    if (data_dep_with_s1) begin
+    if (~(data_dep_with_s1 | mem_in_use_s1)) begin
+		pc_si <= pc;
+	end
+
+    if (data_dep) begin
 		hold <= 1'b1;
-        write_held <= 1'b0;
-	end else if (data_dep_with_s2 | data_dep_with_s3) begin
-		hold <= 1'b0;
-        write_held <= 1'b1;
     end else begin
         hold <= 1'b0;
-        write_held <= 1'b0;
     end
-
-	if (data_dep) begin
-		held_pc <= pc_s0;
-	end
 
     case (branch_cond_select)
         3'b000: branch <= 1'b0;
@@ -104,7 +104,6 @@ always @(posedge clk) begin
         3'b111: branch <= 1'b1;                                     // true
     endcase
 
-    pc_si <= pc;
     pc_s0 <= pc_si;
     pc_s1 <= pc_s0;
     pc_s2 <= pc_s1;
@@ -163,12 +162,14 @@ assign rs2_to_alu_b =       microcode_s1[10];
 assign mem_we =                microcode_s2[11];
 assign alu_out_to_mem_addr =   microcode_s2[12];
 assign reg_out_b_to_mem_data = microcode_s2[13];
-assign jump_if_branch =        microcode_s2[14];
+assign jump_if_branch =        microcode_s2[14]; // update block_for_branch
 assign store_trunc_byte =      microcode_s2[21];
 assign store_trunc_half =      microcode_s2[22];
 
 // s3 signals
 wire   mem_in_use =              microcode_s3[15];
+wire   mem_in_use_s2 =           microcode_s2[15];
+wire   mem_in_use_s1 =           microcode_s1[15];
 
 assign reg_we =                  microcode_s3[16];
 assign up_to_reg_data_in =       microcode_s3[17];
