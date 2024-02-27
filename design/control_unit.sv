@@ -74,21 +74,21 @@ always @(posedge clk) begin
     if (jump_if_branch & branch) begin
         pc <= jump_location[31:2];
     end else if (data_dep_with_s1 & mem_in_use_s1) begin
-		pc_si <= pc_s0;
+        pc_si <= pc_s0;
     end else if (data_dep) begin
         pc <= pc_s0;
     end else if (mem_in_use_s2) begin
-		pc <= pc_si;
+        pc <= pc_si;
     end else begin
-		pc <= pc + 30'b1;
+        pc <= pc + 30'b1;
     end
 
     if (~(data_dep_with_s1 | mem_in_use_s1)) begin
-		pc_si <= pc;
-	end
+        pc_si <= pc;
+    end
 
     if (data_dep) begin
-		hold <= 1'b1;
+        hold <= 1'b1;
     end else begin
         hold <= 1'b0;
     end
