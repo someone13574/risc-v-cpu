@@ -15,8 +15,8 @@ OUT = build
 .PHONY: all
 all: $(OUT)/main.hex $(OUT)/main.hex_dis
 
-$(OUT)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(OUT)/%.o: %.c $(OUT)
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 $(OUT)/%.elf: $(OUT)/%.o
 	$(LD) $(LDFLAGS) -o $@ $<
@@ -27,6 +27,9 @@ $(OUT)/%.hex: $(OUT)/%.elf
 $(OUT)/%.hex_dis: $(OUT)/%.elf
 	$(OBJDUMP) --disassemble $< > $@
 
+$(OUT):
+	mkdir $(OUT)
+
 .PHONY: clean
 clean:
-	rm -f build/*
+	rm -f $(OUT)/*
