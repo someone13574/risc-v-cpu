@@ -177,7 +177,6 @@ wire [31:0] j_type_immediate = {{12{instruction_data_s1[24]}}, instruction_data_
 wire [31:0] b_type_immediate = {{20{instruction_data_s1[24]}}, instruction_data_s1[7], instruction_data_s1[23:18], instruction_data_s1[11:8], 1'b0};
 wire [31:0] s_type_immediate = {{21{instruction_data_s1[24]}}, instruction_data_s1[23:18], instruction_data_s1[4:0]};
 
-
 // buffer signals
 reg [31:0] alu_out_s3;
 

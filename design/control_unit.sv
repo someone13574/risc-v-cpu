@@ -43,6 +43,17 @@ module control_unit(
     output reg hold
 );
 
+typedef enum bit[2:0] {
+    NULL_CMP_OP        = 3'b000,
+    EQ_CMP_OP          = 3'b001,
+    NOT_EQ_CMP_OP      = 3'b010,
+    LESS_THAN_CMP_OP   = 3'b011,
+    GREATER_EQ_CMP_OP  = 3'b100,
+    LESS_THAN_U_CMP_OP = 3'b101,
+    GREATER_EQ_U_CM_OP = 3'b110,
+    TRUE_CMP_OP        = 3'b111
+} cmp_ops_e;
+
 reg [29:0] pc_si;
 reg [29:0] pc_s0;
 
@@ -94,14 +105,14 @@ always @(posedge clk) begin
     end
 
     case (branch_cond_select)
-        3'b000: branch <= 1'b0;
-        3'b001: branch <= reg_out_a          == reg_out_b;          // equal
-        3'b010: branch <= reg_out_a          != reg_out_b;          // not equal
-        3'b011: branch <= $signed(reg_out_a) <  $signed(reg_out_b); // less than signed
-        3'b100: branch <= $signed(reg_out_a) >= $signed(reg_out_b); // greater equal signed
-        3'b101: branch <= reg_out_a          <  reg_out_b;          // less than unsigned
-        3'b110: branch <= reg_out_a          >= reg_out_b;          // greater equal signed
-        3'b111: branch <= 1'b1;                                     // true
+        NULL_CMP_OP:        branch <= 1'b0;
+        EQ_CMP_OP:          branch <= reg_out_a          == reg_out_b;
+        NOT_EQ_CMP_OP:      branch <= reg_out_a          != reg_out_b;
+        LESS_THAN_CMP_OP:   branch <= $signed(reg_out_a) <  $signed(reg_out_b);
+        GREATER_EQ_CMP_OP:  branch <= $signed(reg_out_a) >= $signed(reg_out_b);
+        LESS_THAN_U_CMP_OP: branch <= reg_out_a          <  reg_out_b;
+        GREATER_EQ_U_CM_OP: branch <= reg_out_a          >= reg_out_b;
+        TRUE_CMP_OP:        branch <= 1'b1;
     endcase
 
     pc_s0 <= pc_si;
@@ -116,32 +127,6 @@ always @(posedge clk) begin
     instruction_data_s2 <= instruction_data_s1;
     instruction_data_s3 <= instruction_data_s2;
 end
-
-// inst of interest: 3
-
-// addr : 0   1   2   3   4   5   3   4   5
-// inst :     0   1   2   3           3   4   5
-// s0   :         0   1   2   3           3   4   5
-// s1   :             0   1   2               3   4   5
-// s2   :                 0   1   2               3   4   5
-// s3   :                     0   1   2               3   4   5
-// hold :                         1
-// dep  :                     1
-// wheld:
-
-// if s1 dep, write pc_s0 for next clk. Block current and next
-
-// addr : 0   1   2   3   4   3   4   5
-// inst :     0   1   2   3       3   4   5
-// s0   :         0   1   2   3       3   4   5
-// s1   :             0   1   2           3   4   5
-// s2   :                 0   1   2           3   4   5
-// s3   :                     0   1   2           3   4   5
-// hold :
-// dep  :                     1
-// wheld:                         1
-
-// if s2 dep, write pc_si for next clk. Block current. Set wheld to 2 and write at 1
 
 // s0 signals
 wire check_rs1_dep = microcode_s0[0];
@@ -162,7 +147,7 @@ assign rs2_to_alu_b =       microcode_s1[10];
 assign mem_we =                microcode_s2[11];
 assign alu_out_to_mem_addr =   microcode_s2[12];
 assign reg_out_b_to_mem_data = microcode_s2[13];
-assign jump_if_branch =        microcode_s2[14]; // update block_for_branch
+assign jump_if_branch =        microcode_s2[14];
 assign store_trunc_byte =      microcode_s2[21];
 assign store_trunc_half =      microcode_s2[22];
 
@@ -198,7 +183,8 @@ wire [4:0] rd_s3 = instruction_data_s3[4:0];
 
 endmodule
 
-// microcode_s0 = read
-// microcode_s1 = execute
-// microcode_s2 = read/write memory & pc
-// microcode_s3 = write regs
+// si = first stage with decoded instruction
+// s0 = read
+// s1 = execute
+// s2 = read/write memory & pc
+// s3 = write regs

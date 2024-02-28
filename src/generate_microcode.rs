@@ -136,7 +136,7 @@ pub fn generate_microcode() -> String {
     let operations = [
         Operation {
             microcode: 0,
-            id: "null".to_string(),
+            id: "nop".to_string(),
         },
         Operation {
             microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::Equal),
@@ -300,15 +300,15 @@ pub fn generate_microcode() -> String {
         },
         Operation {
             microcode: 0,
-            id: "fence".to_string(),
+            id: String::new(),
         },
         Operation {
             microcode: 0,
-            id: "ecall".to_string(),
+            id: String::new(),
         },
         Operation {
             microcode: 0,
-            id: "ebreak".to_string(),
+            id: String::new(),
         },
         Operation {
             microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRightSignExt),
@@ -320,8 +320,8 @@ pub fn generate_microcode() -> String {
         .enumerate()
         .map(|(idx, operation)| {
             format!(
-                "{} // {:<6} ({:#04X})",
-                &hex::encode_upper(operation.microcode.to_be_bytes()),
+                "{} // {:<6} ({:#04x})",
+                &hex::encode(operation.microcode.to_be_bytes()),
                 operation.id,
                 idx
             )
@@ -329,4 +329,5 @@ pub fn generate_microcode() -> String {
         .chain((0..64 - operations.len()).map(|_| "00000000".to_string()))
         .collect::<Vec<String>>()
         .join("\n")
+        + "\n"
 }
