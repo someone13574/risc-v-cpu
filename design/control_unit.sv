@@ -84,25 +84,17 @@ assign block_inst = mem_in_use | data_dep | hold | block_for_branch;
 always @(posedge clk) begin
     if (jump_if_branch & branch) begin
         pc <= jump_location[31:2];
-    end else if (data_dep_with_s1 & mem_in_use_s1) begin
-        pc_si <= pc_s0;
     end else if (data_dep) begin
         pc <= pc_s0;
+    end else if (hold & mem_in_use_s2) begin
+        pc <= pc_s1;
     end else if (mem_in_use_s2) begin
         pc <= pc_si;
     end else begin
         pc <= pc + 30'b1;
     end
 
-    if (~(data_dep_with_s1 | mem_in_use_s1)) begin
-        pc_si <= pc;
-    end
-
-    if (data_dep) begin
-        hold <= 1'b1;
-    end else begin
-        hold <= 1'b0;
-    end
+    hold <= data_dep;
 
     case (branch_cond_select)
         NULL_CMP_OP:        branch <= 1'b0;
@@ -115,6 +107,7 @@ always @(posedge clk) begin
         TRUE_CMP_OP:        branch <= 1'b1;
     endcase
 
+    pc_si <= pc;
     pc_s0 <= pc_si;
     pc_s1 <= pc_s0;
     pc_s2 <= pc_s1;
@@ -152,9 +145,8 @@ assign store_trunc_byte =      microcode_s2[21];
 assign store_trunc_half =      microcode_s2[22];
 
 // s3 signals
-wire   mem_in_use =              microcode_s3[15];
-wire   mem_in_use_s2 =           microcode_s2[15];
-wire   mem_in_use_s1 =           microcode_s1[15];
+wire mem_in_use =    microcode_s3[15];
+wire mem_in_use_s2 = microcode_s2[15];
 
 assign reg_we =                  microcode_s3[16];
 assign up_to_reg_data_in =       microcode_s3[17];

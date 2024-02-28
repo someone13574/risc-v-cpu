@@ -4,7 +4,7 @@ OUT = build
 all: $(OUT)/tb_cpu.vcd
 
 $(OUT)/risc-v-cpu: *.sv tests/*.sv $(OUT)
-	iverilog -g2012 -s tb_cpu -o $@ $^
+	iverilog -g2012 -Wall -s tb_cpu -o $@ $^
 
 $(OUT)/tb_cpu.vcd: $(OUT)/risc-v-cpu
 	vvp $(OUT)/risc-v-cpu

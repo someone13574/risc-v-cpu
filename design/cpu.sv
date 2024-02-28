@@ -36,6 +36,10 @@ assign reg_in = (up_to_reg_data_in)       ? upper_immediate_s3 :
                 (ret_addr_to_reg_data_in) ? {pc_s2, 2'b0}      :
                 (mem_data_to_reg_data_in) ? mem_data           : 32'b00000000;
 
+wire [4:0] rs1_s0;
+wire [4:0] rs2_s0;
+wire [4:0] rd_s3;
+
 registers regs(
     .clk(clk),
     .write_enable(reg_we),
@@ -55,8 +59,8 @@ wire reg_out_b_to_mem_data;
 // wire [31:0] mem_addr;
 // wire [31:0] mem_data;
 
-assign mem_addr = (alu_out_to_mem_addr)   ? alu_out   : {pc, 2'b0};
-assign mem_data = (reg_out_b_to_mem_data) ? reg_out_b : 32'hZZZZZZZZ;
+assign mem_addr = (alu_out_to_mem_addr)   ? alu_out      : {pc, 2'b0};
+assign mem_data = (reg_out_b_to_mem_data) ? reg_out_b_s2 : 32'hZZZZZZZZ;
 
 memory ram(
     .clk(clk),
@@ -164,10 +168,10 @@ control_unit cu(
 );
 
 // decode instruction data
-wire [4:0] rs1_s0 = instruction_data_s0[12:8];
-wire [4:0] rs2_s0 = instruction_data_s0[17:13];
+assign rs1_s0 = instruction_data_s0[12:8];
+assign rs2_s0 = instruction_data_s0[17:13];
 wire [4:0] rs2_s1 = instruction_data_s1[17:13];
-wire [4:0] rd_s3  = instruction_data_s3[4:0];
+assign rd_s3  = instruction_data_s3[4:0];
 
 wire [31:0] upper_immediate_s1 = {instruction_data_s1[24:5], 12'b0};
 wire [31:0] upper_immediate_s3 = {instruction_data_s3[24:5], 12'b0};
@@ -179,8 +183,10 @@ wire [31:0] s_type_immediate = {{21{instruction_data_s1[24]}}, instruction_data_
 
 // buffer signals
 reg [31:0] alu_out_s3;
+reg [31:0] reg_out_b_s2;
 
 always @(posedge clk) begin
     alu_out_s3 <= alu_out;
+    reg_out_b_s2 <= reg_out_b;
 end
 endmodule
