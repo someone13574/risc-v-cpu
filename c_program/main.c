@@ -1,10 +1,14 @@
-int test_function(int a, int b)
-{
-    return a + b;
-}
-
 void __attribute__((naked)) _start(void)
 {
-    int* ptr = (int*)0x1000;
-    *ptr = test_function(42, 39);
+    unsigned int* output_addr = (unsigned int*)0x1000;
+
+    unsigned int a, b = 1;
+
+    while (1) {
+        int sum = a + b;
+
+        a = b;
+        b = sum;
+        *output_addr = sum;
+    }
 }

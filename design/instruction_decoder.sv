@@ -28,16 +28,16 @@ always @(instruction) begin
     // Get opcode data: xyzzzzzz. x = use func-7, y = use func-3, z = offset
     // Some func3's are missing values, weave in single opcode vals to gaps
     case(instruction[6:1])
-        LUI:     microcode_lookup = 8'h03;
-        AUIPC:   microcode_lookup = 8'h04;
-        JAL:     microcode_lookup = 8'h0c;
-        JALR:    microcode_lookup = 8'h24;
-        BRANCH:  microcode_lookup = 8'h01 | 8'h40; // offset by func-3
-        LOAD:    microcode_lookup = 8'h09 | 8'h40;
-        STORE:   microcode_lookup = 8'h0f | 8'h40;
-        IMM:     microcode_lookup = 8'h12 | 8'h40;
-        REG:     microcode_lookup = 8'h1b | 8'hc0; // offset by func-3 and func-7
-        default: microcode_lookup = 8'b0;          // no-op
+        LUI:     microcode_lookup <= 8'h03;
+        AUIPC:   microcode_lookup <= 8'h04;
+        JAL:     microcode_lookup <= 8'h0c;
+        JALR:    microcode_lookup <= 8'h24;
+        BRANCH:  microcode_lookup <= 8'h01 | 8'h40; // offset by func-3
+        LOAD:    microcode_lookup <= 8'h09 | 8'h40;
+        STORE:   microcode_lookup <= 8'h0f | 8'h40;
+        IMM:     microcode_lookup <= 8'h12 | 8'h40;
+        REG:     microcode_lookup <= 8'h1b | 8'hc0; // offset by func-3 and func-7
+        default: microcode_lookup <= 8'b0;          // no-op
     endcase
 
     microcode_lookup[5:0] <= microcode_lookup[5:0] + {3'b0, instruction[14:12] & {3{microcode_lookup[6]}}} + {2'b0, instruction[30] & microcode_lookup[7], 3'b0};

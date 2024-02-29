@@ -1,40 +1,23 @@
 module cpu(
     input clk,
-    output [31:0] mem_addr,
-    output [31:0] mem_data,
-    output block_inst,
-    output [29:0] pc,
-    output [31:0] instruction,
-    output [31:0] microcode_s0,
-    output [31:0] microcode_s1,
-    output [31:0] microcode_s2,
-    output [31:0] microcode_s3,
-    output reg_we,
-    output [31:0] reg_out_a,
-    output [31:0] reg_out_b,
-    output [31:0] reg_in,
-    output [31:0] alu_a,
-    output [31:0] alu_b,
-    output [31:0] alu_out,
-    output branch,
-    output hold
+    output [31:0] alu_out
 );
 
 // register module and connections
-// wire reg_we;
+wire reg_we;
 wire up_to_reg_data_in;
 wire alu_out_to_reg_data_in;
 wire ret_addr_to_reg_data_in;
 wire mem_data_to_reg_data_in;
 
-// wire [31:0] reg_out_a;
-// wire [31:0] reg_out_b;
-// wire [31:0] reg_in;
+wire [31:0] reg_out_a;
+wire [31:0] reg_out_b;
+wire [31:0] reg_in;
 
 assign reg_in = (up_to_reg_data_in)       ? upper_immediate_s3 :
                 (alu_out_to_reg_data_in)  ? alu_out_s3         :
                 (ret_addr_to_reg_data_in) ? {pc_s2, 2'b0}      :
-                (mem_data_to_reg_data_in) ? mem_data           : 32'b00000000;
+                (mem_data_to_reg_data_in) ? mem_data_out       : 32'b00000000;
 
 wire [4:0] rs1_s0;
 wire [4:0] rs2_s0;
@@ -54,19 +37,20 @@ registers regs(
 // memory module and connections
 wire mem_we;
 wire alu_out_to_mem_addr;
-wire reg_out_b_to_mem_data;
 
-// wire [31:0] mem_addr;
-// wire [31:0] mem_data;
+wire [29:0] pc;
 
-assign mem_addr = (alu_out_to_mem_addr)   ? alu_out      : {pc, 2'b0};
-assign mem_data = (reg_out_b_to_mem_data) ? reg_out_b_s2 : 32'hZZZZZZZZ;
+wire [31:0] mem_addr;
+wire [31:0] mem_data_out;
+
+assign mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
 
 memory ram(
     .clk(clk),
     .write_enable(mem_we),
     .addr(mem_addr),
-    .data(mem_data)
+    .data_in(reg_out_b_s2),
+    .data_out(mem_data_out)
 );
 
 // alu module and connections
@@ -80,10 +64,10 @@ wire st_to_alu_b;
 wire pc_to_alu_b;
 wire rs2_to_alu_b;
 
-//wire [31:0] alu_a;
-//wire [31:0] alu_b;
+wire [31:0] alu_a;
+wire [31:0] alu_b;
 wire [3:0] alu_op_select;
-//wire [31:0] alu_out;
+// wire [31:0] alu_out;
 
 assign alu_a = (reg_out_a_to_alu_a) ? reg_out_a          :
                (up_to_alu_a)        ? upper_immediate_s1 :
@@ -104,13 +88,13 @@ alu alu(
 );
 
 // instruction decoder module and connections
-// wire mem_in_use;
+wire block_inst;
 
-// wire [31:0] instruction;
-// wire [31:0] microcode_s0;
+wire [31:0] instruction;
+wire [31:0] microcode_s0;
 wire [24:0] instruction_data_s0;
 
-assign instruction = (block_inst) ? 32'b00000000 : mem_data;
+assign instruction = (block_inst) ? 32'b00000000 : mem_data_out;
 
 instruction_decoder decoder(
     .clk(clk),
@@ -120,12 +104,11 @@ instruction_decoder decoder(
 );
 
 // control unit
-// wire [29:0] pc;
 wire [29:0] pc_s1;
 wire [29:0] pc_s2;
-//wire [31:0] microcode_s1;
-//wire [31:0] microcode_s2;
-//wire [31:0] microcode_s3;
+wire [31:0] microcode_s1;
+wire [31:0] microcode_s2;
+wire [31:0] microcode_s3;
 wire [24:0] instruction_data_s1;
 wire [24:0] instruction_data_s3;
 
@@ -156,16 +139,12 @@ control_unit cu(
     .rs2_to_alu_b(rs2_to_alu_b),
     .mem_we(mem_we),
     .alu_out_to_mem_addr(alu_out_to_mem_addr),
-    .reg_out_b_to_mem_data(reg_out_b_to_mem_data),
     .reg_we(reg_we),
     .up_to_reg_data_in(up_to_reg_data_in),
     .alu_out_to_reg_data_in(alu_out_to_reg_data_in),
     .ret_addr_to_reg_data_in(ret_addr_to_reg_data_in),
     .mem_data_to_reg_data_in(mem_data_to_reg_data_in),
-    .block_inst(block_inst),
-    .branch(branch),
-    .hold(hold)
-);
+    .block_inst(block_inst));
 
 // decode instruction data
 assign rs1_s0 = instruction_data_s0[12:8];
