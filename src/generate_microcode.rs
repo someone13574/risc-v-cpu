@@ -16,7 +16,7 @@ const CONNECT_RS2_TO_ALU_B: u32 = 1 << 10;
 // s2 signals
 const MEM_WRITE_ENABLE: u32 = 1 << 11;
 const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 12;
-const CONNECT_REG_OUT_B_TO_MEM_DATA: u32 = 1 << 13;
+const CONNECT_REG_OUT_B_TO_MEM_DATA: u32 = 1 << 13; // deprecated
 const JUMP_IF_BRANCH: u32 = 1 << 14;
 const MEM_IN_USE: u32 = 1 << 15;
 
@@ -25,7 +25,7 @@ const REG_WRITE_ENABLE: u32 = 1 << 16;
 const CONNECT_UP_TO_REG_DATA_IN: u32 = 1 << 17;
 const CONNECT_ALU_OUT_TO_REG_DATA_IN: u32 = 1 << 18;
 const CONNECT_RET_ADDR_TO_REG_DATA_IN: u32 = 1 << 19;
-const CONNECT_MEM_DATA_TO_REG_DATA_IN: u32 = 1 << 20;
+const CONNECT_MEM_DATA_TO_REG_DATA_IN: u32 = 1 << 20; // rename to mem_data_out
 const TRUNC_BYTE: u32 = 1 << 21; // and s2
 const TRUNC_HALF: u32 = 1 << 22; // and s2
 const TRUNC_SIGNED_BYTE: u32 = 1 << 23;
@@ -130,25 +130,20 @@ const REGISTER_ALU_OP_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
 struct Operation {
     microcode: u32,
     id: String,
+    tailing_empty: usize,
 }
 
 pub fn generate_microcode() -> String {
     let operations = [
         Operation {
             microcode: 0,
-            id: "nop".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::Equal),
-            id: "beq".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::NotEqual),
-            id: "bne".to_string(),
+            id: "NOP".to_string(),
+            tailing_empty: 0,
         },
         Operation {
             microcode: REG_WRITE_ENABLE | CONNECT_UP_TO_REG_DATA_IN,
-            id: "lui".to_string(),
+            id: "LUI".to_string(),
+            tailing_empty: 0,
         },
         Operation {
             microcode: REG_WRITE_ENABLE
@@ -156,35 +151,8 @@ pub fn generate_microcode() -> String {
                 | CONNECT_INST_PC_TO_ALU_B
                 | decode_alu_op(AluOp::Add)
                 | CONNECT_ALU_OUT_TO_REG_DATA_IN,
-            id: "auipc".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::LessThan),
-            id: "blt".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::GreaterEqual),
-            id: "bge".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::LessThanUnsigned),
-            id: "bltu".to_string(),
-        },
-        Operation {
-            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::GreaterEqualUnsigned),
-            id: "bgeu".to_string(),
-        },
-        Operation {
-            microcode: LOAD_BASE_MICROCODE | TRUNC_SIGNED_BYTE,
-            id: "lb".to_string(),
-        },
-        Operation {
-            microcode: LOAD_BASE_MICROCODE | TRUNC_SIGNED_HALF,
-            id: "lh".to_string(),
-        },
-        Operation {
-            microcode: LOAD_BASE_MICROCODE,
-            id: "lw".to_string(),
+            id: "AUIPC".to_string(),
+            tailing_empty: 0,
         },
         Operation {
             microcode: REG_WRITE_ENABLE
@@ -194,99 +162,8 @@ pub fn generate_microcode() -> String {
                 | decode_alu_op(AluOp::Add)
                 | JUMP_IF_BRANCH
                 | decode_branch_cmp_op(CmpOp::True),
-            id: "jal".to_string(),
-        },
-        Operation {
-            microcode: LOAD_BASE_MICROCODE | TRUNC_BYTE,
-            id: "lbu".to_string(),
-        },
-        Operation {
-            microcode: LOAD_BASE_MICROCODE | TRUNC_HALF,
-            id: "lhu".to_string(),
-        },
-        Operation {
-            microcode: STORE_BASE_MICROCODE | TRUNC_BYTE,
-            id: "sb".to_string(),
-        },
-        Operation {
-            microcode: STORE_BASE_MICROCODE | TRUNC_HALF,
-            id: "sh".to_string(),
-        },
-        Operation {
-            microcode: STORE_BASE_MICROCODE,
-            id: "sw".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Add),
-            id: "addi".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftLeft),
-            id: "slli".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanSigned),
-            id: "slti".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanUnsigned),
-            id: "sltiu".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Xor),
-            id: "xori".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRight),
-            id: "srli".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Or),
-            id: "ori".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::And),
-            id: "andi".to_string(),
-        },
-        Operation {
-            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRightSignExt),
-            id: "srai".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Add),
-            id: "add".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftLeft),
-            id: "sll".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanSigned),
-            id: "stl".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanUnsigned),
-            id: "stlu".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Xor),
-            id: "xor".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRight),
-            id: "srl".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Or),
-            id: "or".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::And),
-            id: "and".to_string(),
-        },
-        Operation {
-            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Subtract),
-            id: "sub".to_string(),
+            id: "JAL".to_string(),
+            tailing_empty: 0,
         },
         Operation {
             microcode: REG_WRITE_ENABLE
@@ -296,38 +173,195 @@ pub fn generate_microcode() -> String {
                 | JUMP_IF_BRANCH
                 | decode_branch_cmp_op(CmpOp::True)
                 | CHECK_RS1_DEP,
-            id: "jalr".to_string(),
+            id: "JALR".to_string(),
+            tailing_empty: 3,
         },
         Operation {
-            microcode: 0,
-            id: String::new(),
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::Equal),
+            id: "BEQ".to_string(),
+            tailing_empty: 0,
         },
         Operation {
-            microcode: 0,
-            id: String::new(),
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::NotEqual),
+            id: "BNE".to_string(),
+            tailing_empty: 2,
         },
         Operation {
-            microcode: 0,
-            id: String::new(),
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::LessThan),
+            id: "BLT".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::GreaterEqual),
+            id: "BGE".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::LessThanUnsigned),
+            id: "BLTU".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: BRANCH_BASE_MICROCODE | decode_branch_cmp_op(CmpOp::GreaterEqualUnsigned),
+            id: "BGEU".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: LOAD_BASE_MICROCODE | TRUNC_SIGNED_BYTE,
+            id: "LB".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: LOAD_BASE_MICROCODE | TRUNC_SIGNED_HALF,
+            id: "LH".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: LOAD_BASE_MICROCODE,
+            id: "LW".to_string(),
+            tailing_empty: 1,
+        },
+        Operation {
+            microcode: LOAD_BASE_MICROCODE | TRUNC_BYTE,
+            id: "LBU".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: LOAD_BASE_MICROCODE | TRUNC_HALF,
+            id: "LHU".to_string(),
+            tailing_empty: 2,
+        },
+        Operation {
+            microcode: STORE_BASE_MICROCODE | TRUNC_BYTE,
+            id: "SB".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: STORE_BASE_MICROCODE | TRUNC_HALF,
+            id: "SH".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: STORE_BASE_MICROCODE,
+            id: "SW".to_string(),
+            tailing_empty: 5,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Add),
+            id: "ADDI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftLeft),
+            id: "SLLI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanSigned),
+            id: "SLTI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanUnsigned),
+            id: "SLTIU".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Xor),
+            id: "XORI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRight),
+            id: "SRLI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Or),
+            id: "ORI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: IMMEDIATE_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::And),
+            id: "ANDI".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Add),
+            id: "ADD".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftLeft),
+            id: "SLL".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanSigned),
+            id: "SLT".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::SetLessThanUnsigned),
+            id: "SLTU".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Xor),
+            id: "XOR".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRight),
+            id: "SRL".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Or),
+            id: "OR".to_string(),
+            tailing_empty: 0,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::And),
+            id: "AND".to_string(),
+            tailing_empty: 5,
+        },
+        Operation {
+            microcode: IMMEDIATE_SHIFT_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRightSignExt),
+            id: "SRAI".to_string(),
+            tailing_empty: 2,
+        },
+        Operation {
+            microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::Subtract),
+            id: "SUB".to_string(),
+            tailing_empty: 4,
         },
         Operation {
             microcode: REGISTER_ALU_OP_BASE_MICROCODE | decode_alu_op(AluOp::ShiftRightSignExt),
-            id: "sra".to_string(),
+            id: "SRA".to_string(),
+            tailing_empty: 2,
         },
     ];
+
     operations
         .iter()
+        .flat_map(|operation| {
+            std::iter::once(format!(
+                "{} // {:<6}",
+                &hex::encode(operation.microcode.to_be_bytes()),
+                operation.id
+            ))
+            .chain(std::iter::repeat("00000000".to_string()).take(operation.tailing_empty))
+        })
         .enumerate()
         .map(|(idx, operation)| {
-            format!(
-                "{} // {:<6} ({:#04x})",
-                &hex::encode(operation.microcode.to_be_bytes()),
-                operation.id,
-                idx
-            )
+            if operation == "00000000" {
+                operation
+            } else {
+                format!("{operation} ({:#08b}) ({:#04x})", idx, idx)
+            }
         })
-        .chain((0..64 - operations.len()).map(|_| "00000000".to_string()))
-        .collect::<Vec<String>>()
+        .collect::<Vec<_>>()
         .join("\n")
         + "\n"
 }

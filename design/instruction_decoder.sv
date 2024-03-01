@@ -5,11 +5,11 @@ module instruction_decoder(
     output reg [24:0] instruction_data
 );
 
-reg [7:0] microcode_lookup;
+reg [5:0] microcode_lookup;
 
 rom microcode_rom(
     .clk(clk),
-    .addr(microcode_lookup[5:0]),
+    .addr(microcode_lookup),
     .data(microcode)
 );
 
@@ -22,25 +22,22 @@ typedef enum bit[5:0] {
     LOAD   = 6'b000001,
     STORE  = 6'b010001,
     IMM    = 6'b001001,
-    REG    = 6'b011001} opcode_lookup_groups_e;
+    REG    = 6'b011001
+} opcode_lookup_groups_e;
 
 always @(instruction) begin
-    // Get opcode data: xyzzzzzz. x = use func-7, y = use func-3, z = offset
-    // Some func3's are missing values, weave in single opcode vals to gaps
     case(instruction[6:1])
-        LUI:     microcode_lookup <= 8'h03;
-        AUIPC:   microcode_lookup <= 8'h04;
-        JAL:     microcode_lookup <= 8'h0c;
-        JALR:    microcode_lookup <= 8'h24;
-        BRANCH:  microcode_lookup <= 8'h01 | 8'h40; // offset by func-3
-        LOAD:    microcode_lookup <= 8'h09 | 8'h40;
-        STORE:   microcode_lookup <= 8'h0f | 8'h40;
-        IMM:     microcode_lookup <= 8'h12 | 8'h40;
-        REG:     microcode_lookup <= 8'h1b | 8'hc0; // offset by func-3 and func-7
-        default: microcode_lookup <= 8'b0;          // no-op
+        LUI:     microcode_lookup = 6'h01;
+        AUIPC:   microcode_lookup = 6'h02;
+        JAL:     microcode_lookup = 6'h03;
+        JALR:    microcode_lookup = 6'h04;
+        BRANCH:  microcode_lookup = {3'b001, instruction[14:12]};
+        LOAD:    microcode_lookup = {3'b010, instruction[14:12]};
+        STORE:   microcode_lookup = {3'b011, instruction[14:12]};
+        IMM:     microcode_lookup = {1'b1, instruction[30], 1'b0, instruction[14:12]};
+        REG:     microcode_lookup = {1'b1, instruction[30], 1'b1, instruction[14:12]};
+        default: microcode_lookup = 6'b0;
     endcase
-
-    microcode_lookup[5:0] <= microcode_lookup[5:0] + {3'b0, instruction[14:12] & {3{microcode_lookup[6]}}} + {2'b0, instruction[30] & microcode_lookup[7], 3'b0};
 end
 
 always @(posedge clk) begin
