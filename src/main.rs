@@ -1,8 +1,10 @@
 mod generate_microcode;
+mod write_executable;
 
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
+use write_executable::write_executable;
 
 use crate::generate_microcode::generate_microcode;
 
@@ -23,6 +25,10 @@ enum Commands {
 #[derive(Args)]
 struct FlashExecutable {
     path: PathBuf,
+
+    /// Serial port to use for flashing
+    #[arg(short, long, default_value = None)]
+    port: Option<String>,
 }
 
 #[derive(Args)]
@@ -36,7 +42,9 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::FlashExecutable(_args) => {}
+        Commands::FlashExecutable(args) => {
+            write_executable(&args.path, args.port.clone());
+        }
         Commands::GenerateMicrocode(args) => {
             let microcode = generate_microcode();
             println!("{microcode}");
