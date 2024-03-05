@@ -28,9 +28,9 @@ always @(posedge clk) begin
         XOR_ALU_OP:  out <= a ^ b;
         OR_ALU_OP:   out <= a | b;
         AND_ALU_OP:  out <= a & b;
-        SLU_ALU_OP:  out <= a << b;
-        SRU_ALU_OP:  out <= a >> b;
-        SRA_ALU_OP:  out <= a >>> b;
+        SLU_ALU_OP:  out <= a << b[4:0];
+        SRU_ALU_OP:  out <= a >> b[4:0];
+        SRA_ALU_OP:  out <= a >>> b[4:0];
     endcase
 end
 

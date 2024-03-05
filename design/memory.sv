@@ -3,18 +3,21 @@ module memory(
     input write_enable,
     input [31:0] addr,
     input [31:0] data_in,
-    output reg [31:0] data_out
+    output [31:0] data_out
 );
 
-reg [31:0] mem [0:255];
-initial $readmemh("memory_init.mem", mem, 0, 255);
-
-always @(posedge clk) begin
-    if (write_enable) begin
-        mem[addr[31:2]] <= data_in;
+genvar i;
+generate
+    for (i = 0; i < 8; i = i + 1) begin : generate_eabs
+        lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem(
+            .inclock(clk),
+            .outclock(clk),
+            .we(write_enable),
+            .address(addr[8:0]),
+            .data(data_in[i * 4 + 3:i * 4]),
+            .q(data_out[i * 4 + 3: i * 4])
+        );
     end
-
-    data_out <= mem[addr[31:2]];
-end
+endgenerate
 
 endmodule

@@ -9,15 +9,15 @@ module registers(
     output reg [31:0] out_b
 );
 
-reg [31:0] mem [0:31];
+reg [31:0] mem [0:15];
 
 always @(posedge clk) begin
     if (write_enable & write_addr != 0) begin
-        mem[write_addr] <= data;
+        mem[write_addr[3:0]] <= data;
     end
 
-    out_a <= mem[read_addr_a];
-    out_b <= mem[read_addr_b];
+    out_a <= mem[read_addr_a[3:0]];
+    out_b <= mem[read_addr_b[3:0]];
 end
 
 endmodule
