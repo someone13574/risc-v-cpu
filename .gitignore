@@ -1,5 +1,5 @@
 /target
 /c_program/build
 /design/build
-/memory_writer/build
+/eeprom_writer/build
 /.vscode

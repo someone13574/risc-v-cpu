@@ -1,10 +1,10 @@
 mod generate_microcode;
-mod write_executable;
+mod write_eeprom;
 
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use write_executable::write_executable;
+use write_eeprom::write_executable;
 
 use crate::generate_microcode::generate_microcode;
 
