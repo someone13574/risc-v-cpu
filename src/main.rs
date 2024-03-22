@@ -1,10 +1,10 @@
+mod create_mem_init;
 mod generate_microcode;
-mod write_eeprom;
 
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use write_eeprom::write_executable;
+use create_mem_init::create_mem_init;
 
 use crate::generate_microcode::generate_microcode;
 
@@ -16,19 +16,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Write a binary executable to the fpga using an arduino
-    FlashExecutable(FlashExecutable),
     /// Generate the microcode rom data
     GenerateMicrocode(GenerateMicrocode),
-}
-
-#[derive(Args)]
-struct FlashExecutable {
-    path: PathBuf,
-
-    /// Serial port to use for flashing
-    #[arg(short, long, default_value = None)]
-    port: Option<String>,
+    /// Create memory initialization file from a hex file
+    CreateMemInit(CreateMemInit),
 }
 
 #[derive(Args)]
@@ -38,13 +29,16 @@ struct GenerateMicrocode {
     write: bool,
 }
 
+#[derive(Args)]
+struct CreateMemInit {
+    hex_file: PathBuf,
+    dst: PathBuf,
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::FlashExecutable(args) => {
-            write_executable(&args.path, args.port.clone());
-        }
         Commands::GenerateMicrocode(args) => {
             let microcode = generate_microcode();
             println!("{microcode}");
@@ -53,6 +47,9 @@ fn main() {
                 std::fs::write("design/microcode.mem", microcode)
                     .expect("failed to write microcode to design file");
             }
+        }
+        Commands::CreateMemInit(args) => {
+            create_mem_init(&args.hex_file, &args.dst);
         }
     }
 }

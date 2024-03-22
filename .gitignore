@@ -1,4 +1,5 @@
 /target
+/rust-analyzer-target
 /c_program/build
 /design/build
 /eeprom_writer/build

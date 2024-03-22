@@ -1,9 +1,9 @@
 RISCV_PATH = /opt/riscv/bin
-ARCH = rv32i
-ABI = ilp32
+ARCH = rv32e
+ABI = ilp32e
 
 CFLAGS = -march=$(ARCH) -mabi=$(ABI) -ffunction-sections
-LDFLAGS = -march=$(ARCH) -mabi=$(ABI) -melf32lriscv -T linker.ld
+LDFLAGS = -march=$(ARCH) -mabi=$(ABI) -melf32lriscv -T linker.ld --print-memory-usage
 
 CC = $(RISCV_PATH)/riscv32-unknown-elf-gcc
 LD = $(RISCV_PATH)/riscv32-unknown-elf-ld

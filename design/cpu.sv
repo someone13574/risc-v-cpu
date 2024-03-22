@@ -1,6 +1,6 @@
 module cpu(
     input clk,
-    output [31:0] alu_out
+    output [15:0] display_out
 );
 
 // register module and connections
@@ -50,7 +50,8 @@ memory ram(
     .write_enable(mem_we),
     .addr(mem_addr),
     .data_in(reg_out_b_s2),
-    .data_out(mem_data_out)
+    .data_out(mem_data_out),
+    .display_out(display_out)
 );
 
 // alu module and connections

@@ -1,33 +1,38 @@
+ROM_SIZE   = 0x00000400;
+RAM_SIZE   = 0x000003fe;
+STACK_SIZE = 0x00000100;
+IO_SIZE    = 0x00000002;
+
 MEMORY
 {
-  rom : ORIGIN = 0x00000000, LENGTH = 0x20000
-  ram : ORIGIN = 0x20000000, LENGTH = 0x100000
+    rom  (rx) : ORIGIN = 0x00000000, LENGTH = ROM_SIZE
+    ram (rwx) : ORIGIN = ROM_SIZE, LENGTH = RAM_SIZE
+    io  (rwx) : ORIGIN = ROM_SIZE + RAM_SIZE, LENGTH = IO_SIZE
 }
 
 SECTIONS
 {
-    .text :
+    .text : ALIGN(4)
     {
         *(.text*._start)
         *(.text*)
     } > rom
-    .rodata :
+    .rodata : ALIGN(4)
     {
         *(.rodata*)
     } > rom
-    .data :
+    .data : ALIGN(4)
     {
         *(.data*)
     } > ram AT > rom
-    .bss :
+    .bss : ALIGN(4)
     {
         *(.bss*)
     } > ram
-    .stack :
+    .stack : ALIGN(4)
     {
-        . = ALIGN(16);
         _stack_top = .;
-        . = . + 0x4000;
+        . = . + STACK_SIZE;
         _stack_bottom = .;
     } > ram
 }

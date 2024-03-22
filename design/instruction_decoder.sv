@@ -13,7 +13,7 @@ rom microcode_rom(
     .data(microcode)
 );
 
-typedef enum bit[5:0] {
+typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
     LUI    = 6'b011011,
     AUIPC  = 6'b001011,
     JAL    = 6'b110111,
@@ -22,10 +22,12 @@ typedef enum bit[5:0] {
     LOAD   = 6'b000001,
     STORE  = 6'b010001,
     IMM    = 6'b001001,
-    REG    = 6'b011001
+    REG    = 6'b011010
 } opcode_lookup_groups_e;
 
-always @(instruction) begin
+wire imm_func7_enable = instruction[30] & instruction[14:12] == 3'b101;
+
+always @(instruction, imm_func7_enable) begin
     case(instruction[6:1])
         LUI:     microcode_lookup = 6'h01;
         AUIPC:   microcode_lookup = 6'h02;
@@ -34,7 +36,7 @@ always @(instruction) begin
         BRANCH:  microcode_lookup = {3'b001, instruction[14:12]};
         LOAD:    microcode_lookup = {3'b010, instruction[14:12]};
         STORE:   microcode_lookup = {3'b011, instruction[14:12]};
-        IMM:     microcode_lookup = {1'b1, instruction[30], 1'b0, instruction[14:12]};
+        IMM:     microcode_lookup = {1'b1, imm_func7_enable, 1'b0, instruction[14:12]};
         REG:     microcode_lookup = {1'b1, instruction[30], 1'b1, instruction[14:12]};
         default: microcode_lookup = 6'b0;
     endcase
