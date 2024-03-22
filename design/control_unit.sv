@@ -8,21 +8,13 @@ module control_unit(
     output reg [29:0] pc,
     output reg [29:0] pc_s1,
     output reg [29:0] pc_s2,
-    output reg [31:0] microcode_s1,
-    output reg [31:0] microcode_s2,
-    output reg [31:0] microcode_s3,
     output reg [24:0] instruction_data_s1,
     output reg [24:0] instruction_data_s3,
     output [3:0] alu_op_select,
-    output reg_out_a_to_alu_a,
-    output up_to_alu_a,
-    output jt_to_alu_a,
-    output bt_to_alu_a,
-    output reg_out_b_to_alu_b,
-    output li_to_alu_b,
-    output st_to_alu_b,
-    output pc_to_alu_b,
-    output rs2_to_alu_b,
+    output pre_alu_a_to_alu_a,
+    output [1:0] pre_alu_a_select,
+    output pre_alu_b_to_alu_b,
+    output [1:0] pre_alu_b_select,
     output mem_we,
     output alu_out_to_mem_addr,
     output reg_out_b_to_mem_data,
@@ -57,9 +49,9 @@ typedef enum bit[2:0] {
 reg [29:0] pc_si;
 reg [29:0] pc_s0;
 
-// reg [31:0] microcode_s1;
-// reg [31:0] microcode_s2;
-// reg [31:0] microcode_s3;
+reg [31:0] microcode_s1;
+reg [31:0] microcode_s2;
+reg [31:0] microcode_s3;
 
 reg [24:0] instruction_data_s2;
 
@@ -124,17 +116,12 @@ end
 // s0 signals
 wire check_rs1_dep = microcode_s0[0];
 wire check_rs2_dep = microcode_s0[1];
+assign pre_alu_a_select = microcode_s0[3:2];
+assign pre_alu_b_select = microcode_s0[5:4];
 
 // s1 signals
-assign reg_out_a_to_alu_a = microcode_s1[2];
-assign up_to_alu_a =        microcode_s1[3];
-assign jt_to_alu_a =        microcode_s1[4];
-assign bt_to_alu_a =        microcode_s1[5];
-assign reg_out_b_to_alu_b = microcode_s1[6];
-assign li_to_alu_b =        microcode_s1[7];
-assign st_to_alu_b =        microcode_s1[8];
-assign pc_to_alu_b =        microcode_s1[9];
-assign rs2_to_alu_b =       microcode_s1[10];
+assign pre_alu_a_to_alu_a = microcode_s1[6];
+assign pre_alu_b_to_alu_b = microcode_s1[7];
 
 // s2 signals
 assign mem_we =                microcode_s2[11];

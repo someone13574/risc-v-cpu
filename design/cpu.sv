@@ -55,30 +55,19 @@ memory ram(
 );
 
 // alu module and connections
-wire reg_out_a_to_alu_a;
-wire up_to_alu_a;
-wire jt_to_alu_a;
-wire bt_to_alu_a;
-wire reg_out_b_to_alu_b;
-wire li_to_alu_b;
-wire st_to_alu_b;
-wire pc_to_alu_b;
-wire rs2_to_alu_b;
+wire pre_alu_a_to_alu_a;
+wire pre_alu_b_to_alu_b;
+
+reg [31:0] pre_alu_a;
+reg [31:0] pre_alu_b;
 
 wire [31:0] alu_a;
 wire [31:0] alu_b;
 wire [3:0] alu_op_select;
-// wire [31:0] alu_out;
+wire [31:0] alu_out;
 
-assign alu_a = (reg_out_a_to_alu_a) ? reg_out_a          :
-               (up_to_alu_a)        ? upper_immediate_s1 :
-               (jt_to_alu_a)        ? j_type_immediate   :
-               (bt_to_alu_a)        ? b_type_immediate   : 32'b00000000;
-assign alu_b = (reg_out_b_to_alu_b) ? reg_out_b        :
-               (li_to_alu_b)        ? lower_immediate  :
-               (st_to_alu_b)        ? s_type_immediate :
-               (pc_to_alu_b)        ? {pc_s1, 2'b0}    :
-               (rs2_to_alu_b)       ? {27'b0, rs2_s1}  : 32'b00000000;
+assign alu_a = (pre_alu_a_to_alu_a) ? pre_alu_a : reg_out_a;
+assign alu_b = (pre_alu_b_to_alu_b) ? pre_alu_b : reg_out_b;
 
 alu alu(
     .clk(clk),
@@ -107,11 +96,14 @@ instruction_decoder decoder(
 // control unit
 wire [29:0] pc_s1;
 wire [29:0] pc_s2;
-wire [31:0] microcode_s1;
-wire [31:0] microcode_s2;
-wire [31:0] microcode_s3;
+// wire [31:0] microcode_s1;
+// wire [31:0] microcode_s2;
+// wire [31:0] microcode_s3;
 wire [24:0] instruction_data_s1;
 wire [24:0] instruction_data_s3;
+
+wire [1:0] pre_alu_a_select;
+wire [1:0] pre_alu_b_select;
 
 control_unit cu(
     .clk(clk),
@@ -123,21 +115,13 @@ control_unit cu(
     .pc(pc),
     .pc_s1(pc_s1),
     .pc_s2(pc_s2),
-    .microcode_s1(microcode_s1),
-    .microcode_s2(microcode_s2),
-    .microcode_s3(microcode_s3),
     .instruction_data_s1(instruction_data_s1),
     .instruction_data_s3(instruction_data_s3),
     .alu_op_select(alu_op_select),
-    .reg_out_a_to_alu_a(reg_out_a_to_alu_a),
-    .up_to_alu_a(up_to_alu_a),
-    .jt_to_alu_a(jt_to_alu_a),
-    .bt_to_alu_a(bt_to_alu_a),
-    .reg_out_b_to_alu_b(reg_out_b_to_alu_b),
-    .li_to_alu_b(li_to_alu_b),
-    .st_to_alu_b(st_to_alu_b),
-    .pc_to_alu_b(pc_to_alu_b),
-    .rs2_to_alu_b(rs2_to_alu_b),
+    .pre_alu_a_to_alu_a(pre_alu_a_to_alu_a),
+    .pre_alu_a_select(pre_alu_a_select),
+    .pre_alu_b_to_alu_b(pre_alu_b_to_alu_b),
+    .pre_alu_b_select(pre_alu_b_select),
     .mem_we(mem_we),
     .alu_out_to_mem_addr(alu_out_to_mem_addr),
     .reg_we(reg_we),
@@ -150,22 +134,47 @@ control_unit cu(
 // decode instruction data
 assign rs1_s0 = instruction_data_s0[12:8];
 assign rs2_s0 = instruction_data_s0[17:13];
-wire [4:0] rs2_s1 = instruction_data_s1[17:13];
 assign rd_s3  = instruction_data_s3[4:0];
 
-wire [31:0] upper_immediate_s1 = {instruction_data_s1[24:5], 12'b0};
+wire [31:0] upper_immediate_s0 = {instruction_data_s0[24:5], 12'b0};
 wire [31:0] upper_immediate_s3 = {instruction_data_s3[24:5], 12'b0};
 
-wire [31:0] lower_immediate  = {{21{instruction_data_s1[24]}}, instruction_data_s1[23:13]};
-wire [31:0] j_type_immediate = {{12{instruction_data_s1[24]}}, instruction_data_s1[12:5], instruction_data_s1[13], instruction_data_s1[23:14], 1'b0};
-wire [31:0] b_type_immediate = {{20{instruction_data_s1[24]}}, instruction_data_s1[7], instruction_data_s1[23:18], instruction_data_s1[11:8], 1'b0};
-wire [31:0] s_type_immediate = {{21{instruction_data_s1[24]}}, instruction_data_s1[23:18], instruction_data_s1[4:0]};
+wire [31:0] lower_immediate  = {{21{instruction_data_s0[24]}}, instruction_data_s0[23:13]};
+wire [31:0] j_type_immediate = {{12{instruction_data_s0[24]}}, instruction_data_s0[12:5], instruction_data_s0[13], instruction_data_s0[23:14], 1'b0};
+wire [31:0] b_type_immediate = {{20{instruction_data_s0[24]}}, instruction_data_s0[7], instruction_data_s0[23:18], instruction_data_s0[11:8], 1'b0};
+wire [31:0] s_type_immediate = {{21{instruction_data_s0[24]}}, instruction_data_s0[23:18], instruction_data_s0[4:0]};
 
 // buffer signals
 reg [31:0] alu_out_s3;
 reg [31:0] reg_out_b_s2;
 
+typedef enum bit[1:0] {
+    UP = 2'b00,
+    JT = 2'b01,
+    BT = 2'b10
+} pre_alu_a_select_e;
+
+typedef enum bit[1:0] {
+    LI  = 2'b00,
+    ST  = 2'b01,
+    PC  = 2'b10,
+    RS2 = 2'b11
+} pre_alu_b_select_e;
+
 always @(posedge clk) begin
+    case (pre_alu_a_select)
+        UP: pre_alu_a <= upper_immediate_s0;
+        JT: pre_alu_a <= j_type_immediate;
+        BT: pre_alu_a <= b_type_immediate;
+    endcase
+
+    case (pre_alu_b_select)
+        LI: pre_alu_b <= lower_immediate;
+        ST: pre_alu_b <= s_type_immediate;
+        PC: pre_alu_b <= {pc, 2'b0};
+        RS2: pre_alu_b <= {27'b0, rs2_s0};
+    endcase
+
     alu_out_s3 <= alu_out;
     reg_out_b_s2 <= reg_out_b;
 end

@@ -1,17 +1,14 @@
 // s0 signals
 const CHECK_RS1_DEP: u32 = 1;
 const CHECK_RS2_DEP: u32 = 1 << 1;
+// pre alu a select (2)
+// pre alu a select (3)
+// pre alu b select (4)
+// pre alu b select (5)
 
 // s1 signals
-const CONNECT_REG_OUT_A_TO_ALU_A: u32 = 1 << 2;
-const CONNECT_UP_TO_ALU_A: u32 = 1 << 3;
-const CONNECT_JT_TO_ALU_A: u32 = 1 << 4;
-const CONNECT_BT_TO_ALU_A: u32 = 1 << 5;
-const CONNECT_REG_OUT_B_TO_ALU_B: u32 = 1 << 6;
-const CONNECT_LI_TO_ALU_B: u32 = 1 << 7;
-const CONNECT_ST_TO_ALU_B: u32 = 1 << 8;
-const CONNECT_INST_PC_TO_ALU_B: u32 = 1 << 9;
-const CONNECT_RS2_TO_ALU_B: u32 = 1 << 10;
+const CONNECT_PRE_ALU_A_TO_ALU_A: u32 = 1 << 6;
+const CONNECT_PRE_ALU_B_TO_ALU_B: u32 = 1 << 7;
 
 // s2 signals
 const MEM_WRITE_ENABLE: u32 = 1 << 11;
@@ -30,6 +27,41 @@ const TRUNC_BYTE: u32 = 1 << 21; // and s2
 const TRUNC_HALF: u32 = 1 << 22; // and s2
 const TRUNC_SIGNED_BYTE: u32 = 1 << 23;
 const TRUNC_SIGNED_HALF: u32 = 1 << 24;
+
+// pre alu select bits (s0) (used to pre-multiplex alu inputs for timing improvements)
+enum PreAluASelect {
+    Upper,  // 00
+    Jump,   // 01
+    Branch, // 10
+}
+
+const fn decode_pre_alu_a_select(pre_alu_a_select: PreAluASelect) -> u32 {
+    let bits = match pre_alu_a_select {
+        PreAluASelect::Upper => 0b00,
+        PreAluASelect::Jump => 0b01,
+        PreAluASelect::Branch => 0b10,
+    };
+
+    bits << 2
+}
+
+enum PreAluBSelect {
+    LowerImmediate,     // 00
+    StoreTypeImmediate, // 01
+    Pc,                 // 10
+    Rs2,                // 11
+}
+
+const fn decode_pre_alu_b_select(pre_alu_a_select: PreAluBSelect) -> u32 {
+    let bits = match pre_alu_a_select {
+        PreAluBSelect::LowerImmediate => 0b00,
+        PreAluBSelect::StoreTypeImmediate => 0b01,
+        PreAluBSelect::Pc => 0b10,
+        PreAluBSelect::Rs2 => 0b11,
+    };
+
+    bits << 4
+}
 
 // alu ops select (s1)
 enum AluOp {
@@ -88,15 +120,17 @@ const fn decode_branch_cmp_op(cmp_op: CmpOp) -> u32 {
 }
 
 // Base microcode groupings
-const BRANCH_BASE_MICROCODE: u32 = CONNECT_BT_TO_ALU_A
-    | CONNECT_INST_PC_TO_ALU_B
+const BRANCH_BASE_MICROCODE: u32 = CONNECT_PRE_ALU_A_TO_ALU_A
+    | decode_pre_alu_a_select(PreAluASelect::Branch)
+    | CONNECT_PRE_ALU_B_TO_ALU_B
+    | decode_pre_alu_b_select(PreAluBSelect::Pc)
     | decode_alu_op(AluOp::Add)
     | JUMP_IF_BRANCH
     | CHECK_RS1_DEP
     | CHECK_RS2_DEP;
 const LOAD_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
-    | CONNECT_REG_OUT_A_TO_ALU_A
-    | CONNECT_LI_TO_ALU_B
+    | CONNECT_PRE_ALU_B_TO_ALU_B
+    | decode_pre_alu_b_select(PreAluBSelect::LowerImmediate)
     | decode_alu_op(AluOp::Add)
     | CONNECT_ALU_OUT_TO_MEM_ADDR
     | CONNECT_MEM_DATA_TO_REG_DATA_IN
@@ -104,29 +138,25 @@ const LOAD_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
     | MEM_IN_USE;
 const STORE_BASE_MICROCODE: u32 = MEM_WRITE_ENABLE
     | CONNECT_REG_OUT_B_TO_MEM_DATA
-    | CONNECT_REG_OUT_A_TO_ALU_A
-    | CONNECT_ST_TO_ALU_B
+    | CONNECT_PRE_ALU_B_TO_ALU_B
+    | decode_pre_alu_b_select(PreAluBSelect::StoreTypeImmediate)
     | decode_alu_op(AluOp::Add)
     | CONNECT_ALU_OUT_TO_MEM_ADDR
     | CHECK_RS1_DEP
     | CHECK_RS2_DEP
     | MEM_IN_USE;
 const IMMEDIATE_ALU_OP_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
-    | CONNECT_REG_OUT_A_TO_ALU_A
-    | CONNECT_LI_TO_ALU_B
+    | CONNECT_PRE_ALU_B_TO_ALU_B
+    | decode_pre_alu_b_select(PreAluBSelect::LowerImmediate)
     | CONNECT_ALU_OUT_TO_REG_DATA_IN
     | CHECK_RS1_DEP;
 const IMMEDIATE_SHIFT_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
-    | CONNECT_REG_OUT_A_TO_ALU_A
-    | CONNECT_RS2_TO_ALU_B
+    | CONNECT_PRE_ALU_B_TO_ALU_B
+    | decode_pre_alu_b_select(PreAluBSelect::Rs2)
     | CONNECT_ALU_OUT_TO_REG_DATA_IN
     | CHECK_RS1_DEP;
-const REGISTER_ALU_OP_BASE_MICROCODE: u32 = REG_WRITE_ENABLE
-    | CONNECT_REG_OUT_A_TO_ALU_A
-    | CONNECT_REG_OUT_B_TO_ALU_B
-    | CONNECT_ALU_OUT_TO_REG_DATA_IN
-    | CHECK_RS1_DEP
-    | CHECK_RS2_DEP;
+const REGISTER_ALU_OP_BASE_MICROCODE: u32 =
+    REG_WRITE_ENABLE | CONNECT_ALU_OUT_TO_REG_DATA_IN | CHECK_RS1_DEP | CHECK_RS2_DEP;
 struct Operation {
     microcode: u32,
     id: String,
@@ -147,8 +177,10 @@ pub fn generate_microcode() -> String {
         },
         Operation {
             microcode: REG_WRITE_ENABLE
-                | CONNECT_UP_TO_ALU_A
-                | CONNECT_INST_PC_TO_ALU_B
+                | CONNECT_PRE_ALU_A_TO_ALU_A
+                | decode_pre_alu_a_select(PreAluASelect::Upper)
+                | CONNECT_PRE_ALU_B_TO_ALU_B
+                | decode_pre_alu_b_select(PreAluBSelect::Pc)
                 | decode_alu_op(AluOp::Add)
                 | CONNECT_ALU_OUT_TO_REG_DATA_IN,
             id: "AUIPC".to_string(),
@@ -157,8 +189,10 @@ pub fn generate_microcode() -> String {
         Operation {
             microcode: REG_WRITE_ENABLE
                 | CONNECT_RET_ADDR_TO_REG_DATA_IN
-                | CONNECT_JT_TO_ALU_A
-                | CONNECT_INST_PC_TO_ALU_B
+                | CONNECT_PRE_ALU_A_TO_ALU_A
+                | decode_pre_alu_a_select(PreAluASelect::Jump)
+                | CONNECT_PRE_ALU_B_TO_ALU_B
+                | decode_pre_alu_b_select(PreAluBSelect::Pc)
                 | decode_alu_op(AluOp::Add)
                 | JUMP_IF_BRANCH
                 | decode_branch_cmp_op(CmpOp::True),
@@ -168,8 +202,8 @@ pub fn generate_microcode() -> String {
         Operation {
             microcode: REG_WRITE_ENABLE
                 | CONNECT_RET_ADDR_TO_REG_DATA_IN
-                | CONNECT_REG_OUT_A_TO_ALU_A
-                | CONNECT_LI_TO_ALU_B
+                | CONNECT_PRE_ALU_B_TO_ALU_B
+                | decode_pre_alu_b_select(PreAluBSelect::LowerImmediate)
                 | JUMP_IF_BRANCH
                 | decode_branch_cmp_op(CmpOp::True)
                 | CHECK_RS1_DEP,
