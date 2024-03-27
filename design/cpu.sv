@@ -8,7 +8,7 @@ wire reg_we;
 wire up_to_reg_data_in;
 wire alu_out_to_reg_data_in;
 wire ret_addr_to_reg_data_in;
-wire mem_data_to_reg_data_in;
+wire mem_data_out;
 
 wire [31:0] reg_out_a;
 wire [31:0] reg_out_b;
@@ -17,7 +17,7 @@ wire [31:0] reg_in;
 assign reg_in = (up_to_reg_data_in)       ? upper_immediate_s3 :
                 (alu_out_to_reg_data_in)  ? alu_out_s3         :
                 (ret_addr_to_reg_data_in) ? {pc_s2, 2'b0}      :
-                (mem_data_to_reg_data_in) ? mem_data_out       : 32'b00000000;
+                (mem_data_out)            ? mem_data_out       : 32'b00000000;
 
 wire [4:0] rs1_s0;
 wire [4:0] rs2_s0;
@@ -94,11 +94,7 @@ instruction_decoder decoder(
 );
 
 // control unit
-wire [29:0] pc_s1;
 wire [29:0] pc_s2;
-// wire [31:0] microcode_s1;
-// wire [31:0] microcode_s2;
-// wire [31:0] microcode_s3;
 wire [24:0] instruction_data_s1;
 wire [24:0] instruction_data_s3;
 
@@ -113,7 +109,6 @@ control_unit cu(
     .reg_out_a(reg_out_a),
     .reg_out_b(reg_out_b),
     .pc(pc),
-    .pc_s1(pc_s1),
     .pc_s2(pc_s2),
     .instruction_data_s1(instruction_data_s1),
     .instruction_data_s3(instruction_data_s3),
@@ -128,7 +123,7 @@ control_unit cu(
     .up_to_reg_data_in(up_to_reg_data_in),
     .alu_out_to_reg_data_in(alu_out_to_reg_data_in),
     .ret_addr_to_reg_data_in(ret_addr_to_reg_data_in),
-    .mem_data_to_reg_data_in(mem_data_to_reg_data_in),
+    .mem_data_out(mem_data_out),
     .block_inst(block_inst));
 
 // decode instruction data

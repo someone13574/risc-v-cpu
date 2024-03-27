@@ -1,5 +1,6 @@
 mod create_mem_init;
 mod generate_microcode;
+mod microcode;
 
 use std::path::PathBuf;
 
