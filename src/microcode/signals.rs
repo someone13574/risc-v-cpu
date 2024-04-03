@@ -57,4 +57,4 @@ pub const REG_WRITE_ENABLE: u32 = 1 << 19;
 pub const CONNECT_UP_TO_REG_DATA_IN: u32 = 1 << 20;
 pub const CONNECT_ALU_OUT_TO_REG_DATA_IN: u32 = 1 << 21;
 pub const CONNECT_RET_ADDR_TO_REG_DATA_IN: u32 = 1 << 22;
-pub const MEM_DATA_OUT: u32 = 1 << 23;
+pub const CONNECT_MEM_DATA_OUT_TO_REG_DATA_IN: u32 = 1 << 23;

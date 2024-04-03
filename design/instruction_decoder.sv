@@ -1,14 +1,16 @@
 module instruction_decoder(
-    input clk,
-    input [31:0] instruction,
-    output [31:0] microcode,
-    output reg [24:0] instruction_data
+    input logic clk,
+    input logic clk_enable,
+    input logic [31:0] instruction,
+    output logic [31:0] microcode,
+    output logic [24:0] instruction_data
 );
 
-reg [5:0] microcode_lookup;
+logic [5:0] microcode_lookup;
 
 rom microcode_rom(
     .clk(clk),
+    .clk_enable(clk_enable),
     .addr(microcode_lookup),
     .data(microcode)
 );
@@ -25,25 +27,33 @@ typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
     REG    = 6'b011010
 } opcode_lookup_groups_e;
 
-wire imm_func7_enable = instruction[30] & instruction[14:12] == 3'b101;
 
-always @(instruction, imm_func7_enable) begin
-    case(instruction[6:1])
-        LUI:     microcode_lookup = 6'h01;
-        AUIPC:   microcode_lookup = 6'h02;
-        JAL:     microcode_lookup = 6'h03;
-        JALR:    microcode_lookup = 6'h04;
-        BRANCH:  microcode_lookup = {3'b001, instruction[14:12]};
-        LOAD:    microcode_lookup = {3'b010, instruction[14:12]};
-        STORE:   microcode_lookup = {3'b011, instruction[14:12]};
-        IMM:     microcode_lookup = {1'b1, imm_func7_enable, 1'b0, instruction[14:12]};
-        REG:     microcode_lookup = {1'b1, instruction[30], 1'b1, instruction[14:12]};
-        default: microcode_lookup = 6'b0;
-    endcase
+logic imm_func7_enable;
+always_comb begin
+    imm_func7_enable = instruction[30] & (instruction[14:12] == 3'b101);
 end
 
-always @(posedge clk) begin
-    instruction_data <= instruction[31:7];
+always_ff @(*) begin
+    if (clk_enable) begin
+        case(instruction[6:1])
+            LUI:     microcode_lookup = 6'h01;
+            AUIPC:   microcode_lookup = 6'h02;
+            JAL:     microcode_lookup = 6'h03;
+            JALR:    microcode_lookup = 6'h04;
+            BRANCH:  microcode_lookup = {3'b001, instruction[14:12]};
+            LOAD:    microcode_lookup = {3'b010, instruction[14:12]};
+            STORE:   microcode_lookup = {3'b011, instruction[14:12]};
+            IMM:     microcode_lookup = {1'b1, imm_func7_enable, 1'b0, instruction[14:12]};
+            REG:     microcode_lookup = {1'b1, instruction[30], 1'b1, instruction[14:12]};
+            default: microcode_lookup = 6'b0;
+        endcase
+    end
+end
+
+always_ff @(posedge clk) begin
+    if (clk_enable) begin
+        instruction_data <= instruction[31:7];
+    end
 end
 
 endmodule

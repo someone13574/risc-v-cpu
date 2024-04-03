@@ -1,5 +1,6 @@
 module memory(
     input clk,
+    input logic clk_enable,
     input write_enable,
     input [31:0] addr,
     input [31:0] data_in,
@@ -8,9 +9,11 @@ module memory(
 );
 
 always @(posedge clk) begin
-    if (addr == 31'h7fe) begin
-        if (write_enable) begin
-            display_out <= data_in[15:0];
+    if (clk_enable) begin
+        if (addr == 32'h7fe) begin
+            if (write_enable) begin
+                display_out <= data_in[15:0];
+            end
         end
     end
 end

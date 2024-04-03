@@ -1,13 +1,13 @@
 module control_unit(
     input clk,
+    input logic clk_enable,
     input [31:0] microcode_s0,
     input [24:0] instruction_data_s0,
-    input [31:0] jump_location,
+    input [29:0] jump_location,
     input [31:0] reg_out_a,
     input [31:0] reg_out_b,
     output reg [29:0] pc,
     output reg [29:0] pc_s2,
-    output reg [24:0] instruction_data_s1,
     output reg [24:0] instruction_data_s3,
     output [3:0] alu_op_select,
     output pre_alu_a_to_alu_a,
@@ -20,8 +20,11 @@ module control_unit(
     output up_to_reg_data_in,
     output alu_out_to_reg_data_in,
     output ret_addr_to_reg_data_in,
-    output mem_data_out,
-    output block_inst
+    output mem_data_to_reg_data_in,
+    output block_inst,
+    output reg [31:0] microcode_s1,
+    output reg [31:0] microcode_s2,
+    output reg [31:0] microcode_s3
 );
 
 typedef enum bit[2:0] {
@@ -39,20 +42,21 @@ reg [29:0] pc_si;
 reg [29:0] pc_s0;
 reg [29:0] pc_s1;
 
-reg [31:0] microcode_s1;
-reg [31:0] microcode_s2;
-reg [31:0] microcode_s3;
+// reg [31:0] microcode_s1;
+// reg [31:0] microcode_s2;
+// reg [31:0] microcode_s3;
 
+reg [24:0] instruction_data_s1;
 reg [24:0] instruction_data_s2;
 
 reg branch;
+wire jump_if_branch;
 wire data_dep_with_s1;
 wire data_dep_with_s2;
 wire data_dep_with_s3;
 wire data_dep;
 
 reg hold;
-reg [31:0] held_microcode;
 reg [24:0] held_instruction_data;
 
 assign data_dep_with_s1 = (((rs1_s0 == rd_s1) & check_rs1_dep) | ((rs2_s0 == rd_s1) & check_rs2_dep)) & reg_we_s1;
@@ -61,47 +65,51 @@ assign data_dep_with_s3 = (((rs1_s0 == rd_s3) & check_rs1_dep) | ((rs2_s0 == rd_
 assign data_dep = data_dep_with_s1 | data_dep_with_s2 | data_dep_with_s3;
 
 wire block_for_branch = microcode_s0[17] | microcode_s1[17] | microcode_s2[17] | microcode_s3[17]; // jump if branch mc
+wire mem_in_use;
 wire mem_in_use_s3;
 assign block_inst = mem_in_use_s3 | data_dep | hold | block_for_branch;
 
+wire [2:0] branch_cond_select;
 always @(posedge clk) begin
-    if (jump_if_branch & branch) begin
-        pc <= jump_location[31:2];
-    end else if (data_dep) begin
-        pc <= pc_s0;
-    end else if (hold & mem_in_use) begin
-        pc <= pc_s1;
-    end else if (mem_in_use) begin
-        pc <= pc_si;
-    end else begin
-        pc <= pc + 30'b1;
+    if (clk_enable) begin
+        if (jump_if_branch & branch) begin
+            pc <= jump_location;
+        end else if (data_dep) begin
+            pc <= pc_s0;
+        end else if (hold & mem_in_use) begin
+            pc <= pc_s1;
+        end else if (mem_in_use) begin
+            pc <= pc_si;
+        end else begin
+            pc <= pc + 30'b1;
+        end
+
+        hold <= data_dep;
+
+        case (branch_cond_select)
+            NULL_CMP_OP:        branch <= 1'b0;
+            EQ_CMP_OP:          branch <= reg_out_a          == reg_out_b;
+            NOT_EQ_CMP_OP:      branch <= reg_out_a          != reg_out_b;
+            LESS_THAN_CMP_OP:   branch <= $signed(reg_out_a) <  $signed(reg_out_b);
+            GREATER_EQ_CMP_OP:  branch <= $signed(reg_out_a) >= $signed(reg_out_b);
+            LESS_THAN_U_CMP_OP: branch <= reg_out_a          <  reg_out_b;
+            GREATER_EQ_U_CM_OP: branch <= reg_out_a          >= reg_out_b;
+            TRUE_CMP_OP:        branch <= 1'b1;
+        endcase
+
+        pc_si <= pc;
+        pc_s0 <= pc_si;
+        pc_s1 <= pc_s0;
+        pc_s2 <= pc_s1;
+
+        microcode_s1 <= (data_dep) ? 32'b00000000 : microcode_s0;
+        microcode_s2 <= microcode_s1;
+        microcode_s3 <= microcode_s2;
+
+        instruction_data_s1 <= instruction_data_s0;
+        instruction_data_s2 <= instruction_data_s1;
+        instruction_data_s3 <= instruction_data_s2;
     end
-
-    hold <= data_dep;
-
-    case (branch_cond_select)
-        NULL_CMP_OP:        branch <= 1'b0;
-        EQ_CMP_OP:          branch <= reg_out_a          == reg_out_b;
-        NOT_EQ_CMP_OP:      branch <= reg_out_a          != reg_out_b;
-        LESS_THAN_CMP_OP:   branch <= $signed(reg_out_a) <  $signed(reg_out_b);
-        GREATER_EQ_CMP_OP:  branch <= $signed(reg_out_a) >= $signed(reg_out_b);
-        LESS_THAN_U_CMP_OP: branch <= reg_out_a          <  reg_out_b;
-        GREATER_EQ_U_CM_OP: branch <= reg_out_a          >= reg_out_b;
-        TRUE_CMP_OP:        branch <= 1'b1;
-    endcase
-
-    pc_si <= pc;
-    pc_s0 <= pc_si;
-    pc_s1 <= pc_s0;
-    pc_s2 <= pc_s1;
-
-    microcode_s1 <= (data_dep) ? 32'b00000000 : microcode_s0;
-    microcode_s2 <= microcode_s1;
-    microcode_s3 <= microcode_s2;
-
-    instruction_data_s1 <= instruction_data_s0;
-    instruction_data_s2 <= instruction_data_s1;
-    instruction_data_s3 <= instruction_data_s2;
 end
 
 // s0 signals
@@ -128,7 +136,7 @@ assign reg_we                  = microcode_s3[19]; // update reg_we_s1 & reg_we_
 assign up_to_reg_data_in       = microcode_s3[20];
 assign alu_out_to_reg_data_in  = microcode_s3[21];
 assign ret_addr_to_reg_data_in = microcode_s3[22];
-assign mem_data_out            = microcode_s3[23];
+assign mem_data_to_reg_data_in = microcode_s3[23];
 
 // data dep signals (s1, s2)
 wire reg_we_s1 = microcode_s1[19];

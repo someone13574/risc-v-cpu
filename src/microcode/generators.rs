@@ -139,7 +139,7 @@ pub fn load_operation() -> u32 {
         AluSrcA::RegOutA,
         AluSrcB::LowerImmediate,
         AluDst::MemAddr,
-    ) | MEM_DATA_OUT
+    ) | CONNECT_MEM_DATA_OUT_TO_REG_DATA_IN
         | MEM_IN_USE
 }
 

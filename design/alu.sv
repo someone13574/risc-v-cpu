@@ -1,9 +1,10 @@
 module alu(
-    input clk,
-    input [31:0] a,
-    input [31:0] b,
-    input [3:0] alu_op_select,
-    output reg [31:0] out
+    input logic clk,
+    input logic clk_enable,
+    input logic [31:0] a,
+    input logic [31:0] b,
+    input logic [3:0] alu_op_select,
+    output logic [31:0] out
 );
 
 typedef enum bit[3:0] {
@@ -19,19 +20,21 @@ typedef enum bit[3:0] {
     SRA_ALU_OP  = 4'b1001  // shift right arithmetic
 } alu_ops_e;
 
-always @(posedge clk) begin
-    case (alu_op_select)
-        ADD_ALU_OP:  out <= a + b;
-        SUB_ALU_OP:  out <= a - b;
-        SLT_ALU_OP:  out <= ($signed(a) < $signed(b)) ? a : 32'b0;
-        SLTU_ALU_OP: out <= (a < b) ? a : 32'b0;
-        XOR_ALU_OP:  out <= a ^ b;
-        OR_ALU_OP:   out <= a | b;
-        AND_ALU_OP:  out <= a & b;
-        SLU_ALU_OP:  out <= a << b[4:0];
-        SRU_ALU_OP:  out <= a >> b[4:0];
-        SRA_ALU_OP:  out <= a >>> b[4:0];
-    endcase
+always_ff @(posedge clk) begin
+    if (clk_enable) begin
+        case (alu_op_select)
+            ADD_ALU_OP:  out <= a + b;
+            SUB_ALU_OP:  out <= a - b;
+            SLT_ALU_OP:  out <= ($signed(a) < $signed(b)) ? a : 32'b0;
+            SLTU_ALU_OP: out <= (a < b) ? a : 32'b0;
+            XOR_ALU_OP:  out <= a ^ b;
+            OR_ALU_OP:   out <= a | b;
+            AND_ALU_OP:  out <= a & b;
+            SLU_ALU_OP:  out <= a << b[4:0];
+            SRU_ALU_OP:  out <= a >> b[4:0];
+            SRA_ALU_OP:  out <= a >>> b[4:0];
+        endcase
+    end
 end
 
 endmodule

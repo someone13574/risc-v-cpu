@@ -1,23 +1,33 @@
 module cpu(
     input clk,
-    output [15:0] display_out
+    output logic clk_enable,
+    output [15:0] display_out,
+    output [31:0] mem_addr,
+    output [31:0] mem_data_out,
+    output [31:0] microcode_s1
 );
+
+// logic clk_enable;
+always_ff @(posedge clk) begin
+    clk_enable <= ~clk_enable;
+end
 
 // register module and connections
 wire reg_we;
 wire up_to_reg_data_in;
 wire alu_out_to_reg_data_in;
 wire ret_addr_to_reg_data_in;
-wire mem_data_out;
+wire mem_data_to_reg_data_in;
 
 wire [31:0] reg_out_a;
 wire [31:0] reg_out_b;
 wire [31:0] reg_in;
+reg [31:0] reg_out_b_s2;
 
 assign reg_in = (up_to_reg_data_in)       ? upper_immediate_s3 :
                 (alu_out_to_reg_data_in)  ? alu_out_s3         :
                 (ret_addr_to_reg_data_in) ? {pc_s2, 2'b0}      :
-                (mem_data_out)            ? mem_data_out       : 32'b00000000;
+                (mem_data_to_reg_data_in) ? mem_data_out       : 32'b00000000;
 
 wire [4:0] rs1_s0;
 wire [4:0] rs2_s0;
@@ -25,6 +35,7 @@ wire [4:0] rd_s3;
 
 registers regs(
     .clk(clk),
+    .clk_enable(clk_enable),
     .write_enable(reg_we),
     .read_addr_a(rs1_s0),
     .read_addr_b(rs2_s0),
@@ -40,13 +51,14 @@ wire alu_out_to_mem_addr;
 
 wire [29:0] pc;
 
-wire [31:0] mem_addr;
-wire [31:0] mem_data_out;
+// wire [31:0] mem_addr;
+// wire [31:0] mem_data_out;
 
-assign mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
+assign mem_addr = (alu_out_to_mem_addr) ? {pc, 2'b0} : {pc, 2'b0};
 
 memory ram(
     .clk(clk),
+    .clk_enable(clk_enable),
     .write_enable(mem_we),
     .addr(mem_addr),
     .data_in(reg_out_b_s2),
@@ -71,6 +83,7 @@ assign alu_b = (pre_alu_b_to_alu_b) ? pre_alu_b : reg_out_b;
 
 alu alu(
     .clk(clk),
+    .clk_enable(clk_enable),
     .a(alu_a),
     .b(alu_b),
     .alu_op_select(alu_op_select),
@@ -88,6 +101,7 @@ assign instruction = (block_inst) ? 32'b00000000 : mem_data_out;
 
 instruction_decoder decoder(
     .clk(clk),
+    .clk_enable(clk_enable),
     .instruction(instruction),
     .microcode(microcode_s0),
     .instruction_data(instruction_data_s0)
@@ -95,7 +109,6 @@ instruction_decoder decoder(
 
 // control unit
 wire [29:0] pc_s2;
-wire [24:0] instruction_data_s1;
 wire [24:0] instruction_data_s3;
 
 wire [1:0] pre_alu_a_select;
@@ -103,14 +116,14 @@ wire [1:0] pre_alu_b_select;
 
 control_unit cu(
     .clk(clk),
+    .clk_enable(clk_enable),
     .microcode_s0(microcode_s0),
     .instruction_data_s0(instruction_data_s0),
-    .jump_location(alu_out),
+    .jump_location(alu_out[31:2]),
     .reg_out_a(reg_out_a),
     .reg_out_b(reg_out_b),
     .pc(pc),
     .pc_s2(pc_s2),
-    .instruction_data_s1(instruction_data_s1),
     .instruction_data_s3(instruction_data_s3),
     .alu_op_select(alu_op_select),
     .pre_alu_a_to_alu_a(pre_alu_a_to_alu_a),
@@ -123,7 +136,8 @@ control_unit cu(
     .up_to_reg_data_in(up_to_reg_data_in),
     .alu_out_to_reg_data_in(alu_out_to_reg_data_in),
     .ret_addr_to_reg_data_in(ret_addr_to_reg_data_in),
-    .mem_data_out(mem_data_out),
+    .mem_data_to_reg_data_in(mem_data_to_reg_data_in),
+    .microcode_s1(microcode_s1),
     .block_inst(block_inst));
 
 // decode instruction data
@@ -141,7 +155,6 @@ wire [31:0] s_type_immediate = {{21{instruction_data_s0[24]}}, instruction_data_
 
 // buffer signals
 reg [31:0] alu_out_s3;
-reg [31:0] reg_out_b_s2;
 
 typedef enum bit[1:0] {
     UP = 2'b00,
@@ -157,20 +170,22 @@ typedef enum bit[1:0] {
 } pre_alu_b_select_e;
 
 always @(posedge clk) begin
-    case (pre_alu_a_select)
-        UP: pre_alu_a <= upper_immediate_s0;
-        JT: pre_alu_a <= j_type_immediate;
-        BT: pre_alu_a <= b_type_immediate;
-    endcase
+    if (clk_enable) begin
+        case (pre_alu_a_select)
+            UP: pre_alu_a <= upper_immediate_s0;
+            JT: pre_alu_a <= j_type_immediate;
+            BT: pre_alu_a <= b_type_immediate;
+        endcase
 
-    case (pre_alu_b_select)
-        LI: pre_alu_b <= lower_immediate;
-        ST: pre_alu_b <= s_type_immediate;
-        PC: pre_alu_b <= {pc, 2'b0};
-        RS2: pre_alu_b <= {27'b0, rs2_s0};
-    endcase
+        case (pre_alu_b_select)
+            LI: pre_alu_b <= lower_immediate;
+            ST: pre_alu_b <= s_type_immediate;
+            PC: pre_alu_b <= {pc, 2'b0};
+            RS2: pre_alu_b <= {27'b0, rs2_s0};
+        endcase
 
-    alu_out_s3 <= alu_out;
-    reg_out_b_s2 <= reg_out_b;
+        alu_out_s3 <= alu_out;
+        reg_out_b_s2 <= reg_out_b;
+    end
 end
 endmodule
