@@ -33,6 +33,7 @@ always_ff @(posedge clk) begin
             SLU_ALU_OP:  out <= a << b[4:0];
             SRU_ALU_OP:  out <= a >> b[4:0];
             SRA_ALU_OP:  out <= a >>> b[4:0];
+            default:     out <= 32'b0;
         endcase
     end
 end

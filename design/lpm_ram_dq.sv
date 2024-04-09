@@ -1,17 +1,17 @@
 module lpm_ram_dq #(
     parameter LPM_WIDTH,
     parameter LPM_WIDTHAD,
-    parameter LPM_OUTDATA,
     parameter LPM_FILE
 ) (
     input logic inclock,
+    input logic outclock,
     input logic we,
     input logic [LPM_WIDTHAD - 1:0] address,
     input logic [LPM_WIDTH - 1:0] data,
     output logic [LPM_WIDTH - 1:0] q
 );
 
-logic [LPM_WIDTH - 1:0] mem [0:LPM_WIDTHAD ** 2 - 1];
+logic [LPM_WIDTH - 1:0] mem [0:2 ** LPM_WIDTHAD - 1];
 
 initial $readmemh(LPM_FILE, mem);
 

@@ -117,7 +117,7 @@ pub fn jump_operation(operation: CmpOp) -> u32 {
         CmpOp::LessThanUnsigned => 0b101,
         CmpOp::GreaterEqualUnsigned => 0b110,
         CmpOp::True => 0b111,
-    };
+    } << 12;
 
     signal |= JUMP_IF_BRANCH;
 

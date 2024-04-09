@@ -47,6 +47,8 @@ always_ff @(*) begin
             REG:     microcode_lookup = {1'b1, instruction[30], 1'b1, instruction[14:12]};
             default: microcode_lookup = 6'b0;
         endcase
+    end else begin
+        microcode_lookup = 6'b0;
     end
 end
 

@@ -7,6 +7,7 @@ module control_unit(
     input [31:0] reg_out_a,
     input [31:0] reg_out_b,
     output reg [29:0] pc,
+    output reg [29:0] pc_s0,
     output reg [29:0] pc_s2,
     output reg [24:0] instruction_data_s3,
     output [3:0] alu_op_select,
@@ -39,7 +40,7 @@ typedef enum bit[2:0] {
 } cmp_ops_e;
 
 reg [29:0] pc_si;
-reg [29:0] pc_s0;
+// reg [29:0] pc_s0;
 reg [29:0] pc_s1;
 
 // reg [31:0] microcode_s1;
