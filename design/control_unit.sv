@@ -1,31 +1,28 @@
 module control_unit(
-    input clk,
+    input logic clk,
     input logic clk_enable,
-    input [31:0] microcode_s0,
-    input [24:0] instruction_data_s0,
-    input [29:0] jump_location,
-    input [31:0] reg_out_a,
-    input [31:0] reg_out_b,
-    output reg [29:0] pc,
-    output reg [29:0] pc_s0,
-    output reg [29:0] pc_s2,
-    output reg [24:0] instruction_data_s3,
-    output [3:0] alu_op_select,
-    output pre_alu_a_to_alu_a,
-    output [1:0] pre_alu_a_select,
-    output pre_alu_b_to_alu_b,
-    output [1:0] pre_alu_b_select,
-    output mem_we,
-    output alu_out_to_mem_addr,
-    output reg_we,
-    output up_to_reg_data_in,
-    output alu_out_to_reg_data_in,
-    output ret_addr_to_reg_data_in,
-    output mem_data_to_reg_data_in,
-    output block_inst,
-    output reg [31:0] microcode_s1,
-    output reg [31:0] microcode_s2,
-    output reg [31:0] microcode_s3
+    input logic [31:0] microcode_s0,
+    input logic [24:0] instruction_data_s0,
+    input logic [29:0] jump_location,
+    input logic [31:0] reg_out_a,
+    input logic [31:0] reg_out_b,
+    output logic [29:0] pc,
+    output logic [29:0] pc_s0,
+    output logic [29:0] pc_s2,
+    output logic [24:0] instruction_data_s3,
+    output logic [3:0] alu_op_select,
+    output logic pre_alu_a_to_alu_a,
+    output logic [1:0] pre_alu_a_select,
+    output logic pre_alu_b_to_alu_b,
+    output logic [1:0] pre_alu_b_select,
+    output logic mem_we,
+    output logic alu_out_to_mem_addr,
+    output logic reg_we,
+    output logic up_to_reg_data_in,
+    output logic alu_out_to_reg_data_in,
+    output logic ret_addr_to_reg_data_in,
+    output logic mem_data_to_reg_data_in,
+    output logic block_inst
 );
 
 typedef enum bit[2:0] {
@@ -39,39 +36,43 @@ typedef enum bit[2:0] {
     TRUE_CMP_OP        = 3'b111
 } cmp_ops_e;
 
-reg [29:0] pc_si;
+logic [29:0] pc_si;
 // reg [29:0] pc_s0;
-reg [29:0] pc_s1;
+logic [29:0] pc_s1;
 
-// reg [31:0] microcode_s1;
-// reg [31:0] microcode_s2;
-// reg [31:0] microcode_s3;
+reg [31:0] microcode_s1;
+reg [31:0] microcode_s2;
+reg [31:0] microcode_s3;
 
-reg [24:0] instruction_data_s1;
-reg [24:0] instruction_data_s2;
+logic [24:0] instruction_data_s1;
+logic [24:0] instruction_data_s2;
 
-reg branch;
-wire jump_if_branch;
-wire data_dep_with_s1;
-wire data_dep_with_s2;
-wire data_dep_with_s3;
-wire data_dep;
+logic branch;
+logic jump_if_branch;
+logic data_dep_with_s1;
+logic data_dep_with_s2;
+logic data_dep_with_s3;
+logic data_dep;
 
-reg hold;
-reg [24:0] held_instruction_data;
+logic hold;
+logic [24:0] held_instruction_data;
+
+logic check_rs1_dep;
+logic check_rs2_dep;
 
 assign data_dep_with_s1 = (((rs1_s0 == rd_s1) & check_rs1_dep) | ((rs2_s0 == rd_s1) & check_rs2_dep)) & reg_we_s1;
 assign data_dep_with_s2 = (((rs1_s0 == rd_s2) & check_rs1_dep) | ((rs2_s0 == rd_s2) & check_rs2_dep)) & reg_we_s2;
 assign data_dep_with_s3 = (((rs1_s0 == rd_s3) & check_rs1_dep) | ((rs2_s0 == rd_s3) & check_rs2_dep)) & reg_we;
 assign data_dep = data_dep_with_s1 | data_dep_with_s2 | data_dep_with_s3;
 
-wire block_for_branch = microcode_s0[17] | microcode_s1[17] | microcode_s2[17] | microcode_s3[17]; // jump if branch mc
-wire mem_in_use;
-wire mem_in_use_s3;
+logic block_for_branch;
+assign block_for_branch = microcode_s0[17] | microcode_s1[17] | microcode_s2[17] | microcode_s3[17]; // jump if branch mc
+logic mem_in_use;
+logic mem_in_use_s3;
 assign block_inst = mem_in_use_s3 | data_dep | hold | block_for_branch;
 
-wire [2:0] branch_cond_select;
-always @(posedge clk) begin
+logic [2:0] branch_cond_select;
+always_ff @(posedge clk) begin
     if (clk_enable) begin
         if (jump_if_branch & branch) begin
             pc <= jump_location;
@@ -113,31 +114,36 @@ always @(posedge clk) begin
     end
 end
 
-// s0 signals
-wire check_rs1_dep = microcode_s0[0];
-wire check_rs2_dep = microcode_s0[1];
-assign pre_alu_a_select = microcode_s0[3:2];
-assign pre_alu_b_select = microcode_s0[5:4];
+always_comb begin : s0_signals
+    check_rs1_dep    = microcode_s0[0];
+    check_rs2_dep    = microcode_s0[1];
+    pre_alu_a_select = microcode_s0[3:2];
+    pre_alu_b_select = microcode_s0[5:4];
+end
 
-// s1 signals
-assign pre_alu_a_to_alu_a = microcode_s1[6];
-assign pre_alu_b_to_alu_b = microcode_s1[7];
-assign alu_op_select      = microcode_s1[11:8];
-assign branch_cond_select = microcode_s1[14:12];
+always_comb begin : s1_signals
+    pre_alu_a_to_alu_a = microcode_s1[6];
+    pre_alu_b_to_alu_b = microcode_s1[7];
+    alu_op_select      = microcode_s1[11:8];
+    branch_cond_select = microcode_s1[14:12];
+end
 
-// s2 signals
-assign mem_we                = microcode_s2[15];
-assign alu_out_to_mem_addr   = microcode_s2[16];
-assign jump_if_branch        = microcode_s2[17];
-assign mem_in_use            = microcode_s2[18];
+always_comb begin : s2_signals
+    mem_we              = microcode_s2[15];
+    alu_out_to_mem_addr = microcode_s2[16];
+    jump_if_branch      = microcode_s2[17];
+    mem_in_use          = microcode_s2[18];
+end
 
 // s3 signals
-assign mem_in_use_s3           = microcode_s3[18];
-assign reg_we                  = microcode_s3[19]; // update reg_we_s1 & reg_we_s2 as well
-assign up_to_reg_data_in       = microcode_s3[20];
-assign alu_out_to_reg_data_in  = microcode_s3[21];
-assign ret_addr_to_reg_data_in = microcode_s3[22];
-assign mem_data_to_reg_data_in = microcode_s3[23];
+always_comb begin : s3_signals
+    mem_in_use_s3           = microcode_s3[18];
+    reg_we                  = microcode_s3[19]; // update reg_we_s1 & reg_we_s2 as well
+    up_to_reg_data_in       = microcode_s3[20];
+    alu_out_to_reg_data_in  = microcode_s3[21];
+    ret_addr_to_reg_data_in = microcode_s3[22];
+    mem_data_to_reg_data_in = microcode_s3[23];
+end
 
 // data dep signals (s1, s2)
 wire reg_we_s1 = microcode_s1[19];

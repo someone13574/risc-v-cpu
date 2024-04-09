@@ -1,14 +1,14 @@
 module memory(
-    input clk,
+    input logic clk,
     input logic clk_enable,
-    input write_enable,
-    input [31:0] addr,
-    input [31:0] data_in,
-    output [31:0] data_out,
-    output reg [15:0] display_out
+    input logic write_enable,
+    input logic [31:0] addr,
+    input logic [31:0] data_in,
+    output logic [31:0] data_out,
+    output logic [15:0] display_out
 );
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (clk_enable) begin
         if (addr == 32'h7fe) begin
             if (write_enable) begin
