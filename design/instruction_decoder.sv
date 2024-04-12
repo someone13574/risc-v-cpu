@@ -2,8 +2,8 @@ module instruction_decoder(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] instruction,
-    output logic [31:0] microcode,
-    output logic [24:0] instruction_data
+    output logic [22:0] microcode_s0,
+    output logic [24:0] instruction_data_sf
 );
 
 logic [5:0] microcode_lookup;
@@ -12,7 +12,7 @@ rom microcode_rom(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(microcode_lookup),
-    .data(microcode)
+    .data(microcode_s0)
 );
 
 typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
@@ -31,6 +31,7 @@ typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
 logic imm_func7_enable;
 always_comb begin
     imm_func7_enable = instruction[30] & (instruction[14:12] == 3'b101);
+    instruction_data_sf = instruction[31:7];
 end
 
 always_ff @(*) begin
@@ -49,12 +50,6 @@ always_ff @(*) begin
         endcase
     end else begin
         microcode_lookup = 6'b0;
-    end
-end
-
-always_ff @(posedge clk) begin
-    if (clk_enable) begin
-        instruction_data <= instruction[31:7];
     end
 end
 

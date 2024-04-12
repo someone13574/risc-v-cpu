@@ -1,6 +1,6 @@
 module tb_cpu;
 
-reg clk;
+logic clk;
 
 cpu cpu(
     .clk(clk)

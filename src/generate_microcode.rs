@@ -14,7 +14,7 @@ pub fn generate_microcode() -> String {
             tailing_empty: 0,
         },
         Operation {
-            microcode: REG_WRITE_ENABLE | CONNECT_UP_TO_REG_DATA_IN,
+            microcode: REG_WRITE_ENABLE | WritebackSelect::UpperImmediate.decode(),
             id: "LUI".to_string(),
             tailing_empty: 0,
         },
@@ -31,7 +31,7 @@ pub fn generate_microcode() -> String {
         },
         Operation {
             microcode: REG_WRITE_ENABLE
-                | CONNECT_RET_ADDR_TO_REG_DATA_IN
+                | WritebackSelect::ReturnAddr.decode()
                 | jump_operation(CmpOp::True)
                 | alu_operation(
                     AluOp::Add,
@@ -44,7 +44,7 @@ pub fn generate_microcode() -> String {
         },
         Operation {
             microcode: REG_WRITE_ENABLE
-                | CONNECT_RET_ADDR_TO_REG_DATA_IN
+                | WritebackSelect::ReturnAddr.decode()
                 | alu_operation(
                     AluOp::Add,
                     AluSrcA::RegOutA,

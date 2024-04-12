@@ -1,11 +1,17 @@
 module memory(
     input logic clk,
     input logic clk_enable,
-    input logic write_enable,
     input logic [31:0] addr,
     input logic [31:0] data_in,
+    input logic [22:0] microcode_s2,
     output logic [31:0] data_out,
     output logic [15:0] display_out
+);
+
+logic write_enable;
+microcode_s2_decoder mc_s2_decode(
+    .microcode(microcode_s2),
+    .mem_write_enable(write_enable)
 );
 
 always_ff @(posedge clk) begin

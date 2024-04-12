@@ -1,5 +1,23 @@
 use super::signals::*;
 
+pub enum WritebackSelect {
+    UpperImmediate,
+    AluOut,
+    ReturnAddr,
+    MemData,
+}
+
+impl WritebackSelect {
+    pub fn decode(&self) -> u32 {
+        match self {
+            WritebackSelect::UpperImmediate => USE_PRE_WB_OVER_MEM_DATA,
+            WritebackSelect::AluOut => (0b01 << 19) & USE_PRE_WB_OVER_MEM_DATA,
+            WritebackSelect::ReturnAddr => (0b10 << 19) & USE_PRE_WB_OVER_MEM_DATA,
+            WritebackSelect::MemData => 0,
+        }
+    }
+}
+
 #[derive(PartialEq, Clone, Copy)]
 pub enum AluSrcA {
     UpperImmediate,
@@ -70,7 +88,7 @@ pub fn alu_operation(operation: AluOp, src_a: AluSrcA, src_b: AluSrcB, dst: AluD
                 PreAluASelect::Jump => 0b01,
                 PreAluASelect::Branch => 0b10,
             } << 2)
-                | CONNECT_PRE_ALU_A_TO_ALU_A
+                | USE_PRE_ALU_A_OVER_REG_OUT
         }
         None => 0,
     };
@@ -83,14 +101,14 @@ pub fn alu_operation(operation: AluOp, src_a: AluSrcA, src_b: AluSrcB, dst: AluD
                 PreAluBSelect::Pc => 0b10,
                 PreAluBSelect::Rs2 => 0b11,
             } << 4)
-                | CONNECT_PRE_ALU_B_TO_ALU_B
+                | USE_PRE_ALU_B_OVER_REG_OUT
         }
         None => 0,
     };
 
     signal |= match dst {
         AluDst::MemAddr => CONNECT_ALU_OUT_TO_MEM_ADDR,
-        AluDst::RegDataIn => CONNECT_ALU_OUT_TO_REG_DATA_IN,
+        AluDst::RegDataIn => WritebackSelect::AluOut.decode(),
         AluDst::Jump => 0,
     };
 
@@ -139,7 +157,7 @@ pub fn load_operation() -> u32 {
         AluSrcA::RegOutA,
         AluSrcB::LowerImmediate,
         AluDst::MemAddr,
-    ) | CONNECT_MEM_DATA_OUT_TO_REG_DATA_IN
+    ) | WritebackSelect::MemData.decode()
         | MEM_IN_USE
 }
 
