@@ -1,3 +1,6 @@
+// NOTE: This file is a stub for letting verilator work. If you are running on
+// an EPF10K70, do not include this file so it will instead use the builtin EABs.
+
 module lpm_ram_dq #(
     parameter LPM_WIDTH,
     parameter LPM_WIDTHAD,
