@@ -3,7 +3,7 @@ module alu(
     input logic clk_enable,
     input logic [31:0] a,
     input logic [31:0] b,
-    input logic [22:0] microcode_s1,
+    input logic [21:0] microcode_s1,
     output logic [31:0] out
 );
 

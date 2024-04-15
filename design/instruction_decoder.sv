@@ -2,8 +2,8 @@ module instruction_decoder(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] instruction,
-    output logic [22:0] microcode_s0,
-    output logic [24:0] instruction_data_sf
+    output logic [21:0] microcode_s0,
+    output logic [24:0] instruction_data_si
 );
 
 logic [5:0] microcode_lookup;
@@ -31,7 +31,7 @@ typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
 logic imm_func7_enable;
 always_comb begin
     imm_func7_enable = instruction[30] & (instruction[14:12] == 3'b101);
-    instruction_data_sf = instruction[31:7];
+    instruction_data_si = instruction[31:7];
 end
 
 always_ff @(*) begin

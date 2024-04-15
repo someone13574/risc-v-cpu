@@ -10,19 +10,19 @@ always_ff @(posedge clk) begin
 end
 
 // shared signals
-logic [22:0] microcode_s0;
-logic [22:0] microcode_s1;
-logic [22:0] microcode_s2;
-logic [22:0] microcode_s3;
+logic [21:0] microcode_s0;
+logic [21:0] microcode_s1;
+logic [21:0] microcode_s2;
+logic [21:0] microcode_s3;
 
-logic [24:0] instruction_data_sf;
+logic [24:0] instruction_data_si;
 logic [24:0] instruction_data_s0;
 logic [24:0] instruction_data_s1;
 logic [24:0] instruction_data_s2;
 logic [24:0] instruction_data_s3;
 
-logic [31:0] pc_s0;
-logic [31:0] ret_addr;
+logic [29:0] pc_s0;
+logic [29:0] ret_addr;
 
 logic [31:0] reg_out_a;
 logic [31:0] reg_out_b;
@@ -49,7 +49,7 @@ instruction_decoder inst_decode(
     .clk_enable(clk_enable),
     .instruction(mem_data_out),
     .microcode_s0(microcode_s0),
-    .instruction_data_sf(instruction_data_s0)
+    .instruction_data_si(instruction_data_si)
 );
 
 // registers
@@ -74,7 +74,7 @@ registers regs(
     .clk(clk),
     .clk_enable(clk_enable),
     .microcode_s3(microcode_s3),
-    .instruction_data_sf(instruction_data_sf),
+    .instruction_data_si(instruction_data_si),
     .instruction_data_s3(instruction_data_s3),
     .data_in(reg_data_in),
     .data_out_a(reg_out_a),
@@ -107,6 +107,8 @@ pre_alu pre_alu_mux(
     .microcode_s0(microcode_s0),
     .instruction_data_s0(instruction_data_s0),
     .pc_s0(pc_s0),
+    .reg_out_a(reg_out_a),
+    .reg_out_b(reg_out_b),
     .pre_alu_a(alu_a),
     .pre_alu_b(alu_b)
 );
@@ -125,10 +127,10 @@ control_unit cu(
     .clk(clk),
     .clk_enable(clk_enable),
     .microcode_s0(microcode_s0),
-    .instruction_data_sf(instruction_data_sf),
+    .instruction_data_si(instruction_data_si),
     .reg_out_a(reg_out_a),
     .reg_out_b(reg_out_b),
-    .jmp_addr(),
+    .jmp_addr(alu_out),
     .microcode_s1(microcode_s1),
     .microcode_s2(microcode_s2),
     .microcode_s3(microcode_s3),

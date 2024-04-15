@@ -9,11 +9,11 @@
 | 2-3    | s0    | `pre_alu_a_select`         | Used to multiplex alu input a's input ahead of time.                                                                           |
 | 4-6    | s0    | `pre_alu_b_select`         | Used to multiplex alu input b's input ahead of time.                                                                           |
 | 7-9    | s0    | `cmp_op_select`            | Selects a comparison operation for branching.                                                                                  |
-| 10     | s1    | `jump_if_branch`           | Executes a jump if the branch condition is true.                                                                              |
-| 11     | s1    | `mem_in_use`               | Signals that memory is used by this operation, thus stalling the pipeline.                                                     |
-| 12-15  | s1    | `alu_op_select`            | Selects an ALU operation.                                                                                                      |
-| 16     | s2    | `mem_write_enable`         | Enables the write signal for memory.                                                                                           |
-| 17     | s2    | `alu_out_to_mem_addr`      | Toggles between connecting the alu output or the program counter to the memory address.                                        |
+| 10     | s1    | `mem_in_use`               | Signals that memory is used by this operation, thus stalling the pipeline.                                                     |
+| 11-14  | s1    | `alu_op_select`            | Selects an ALU operation.                                                                                                      |
+| 15     | s2    | `mem_write_enable`         | Enables the write signal for memory.                                                                                           |
+| 16     | s2    | `alu_out_to_mem_addr`      | Toggles between connecting the alu output or the program counter to the memory address.                                        |
+| 17     | s1    | `jump_if_branch`           | Executes a jump if the branch condition is true.                                                                               |
 | 18-19  | s2    | `pre_writeback_select`     | Used to multiplex the memory input ahead of time.                                                                              |
 | 20     | s3    | `reg_write_enable`         | Enables the write signal for the registers.                                                                                    |
 | 21     | s3    | `use_pre_wb_over_mem_data` | Toggles between using the multiplexed `pre_writeback` and using the output memory data as an input to the register input data. |

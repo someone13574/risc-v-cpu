@@ -1,7 +1,7 @@
 module pre_writeback (
     input logic clk,
     input logic clk_enable,
-    input logic [22:0] microcode_s2,
+    input logic [21:0] microcode_s2,
     input logic [24:0] instruction_data_s2,
     input logic [31:0] alu_out,
     input logic [29:0] return_addr,
@@ -23,8 +23,8 @@ instruction_data_decoder inst_data_decode(
 
 typedef enum bit[1:0] {
     UP = 2'b00,
-    ALU = 2'b00,
-    RET_ADDR = 2'b00
+    ALU = 2'b01,
+    RET_ADDR = 2'b10
 } pre_wb_select_e;
 
 always_ff @(posedge clk) begin

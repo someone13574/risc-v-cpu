@@ -2,5 +2,6 @@
 /rust-analyzer-target
 /c_program/build
 /design/build
+/design/memory_init
 /eeprom_writer/build
 /.vscode

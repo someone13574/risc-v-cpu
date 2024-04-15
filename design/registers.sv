@@ -1,8 +1,8 @@
 module registers(
     input logic clk,
     input logic clk_enable,
-    input logic [22:0] microcode_s3,
-    input logic [24:0] instruction_data_sf,
+    input logic [21:0] microcode_s3,
+    input logic [24:0] instruction_data_si,
     input logic [24:0] instruction_data_s3,
     input logic [31:0] data_in,
     output logic [31:0] data_out_a,
@@ -21,8 +21,8 @@ microcode_s3_decoder mc_s3_decode(
 logic [4:0] rs1;
 logic [4:0] rs2;
 
-instruction_data_decoder inst_data_sf_decode(
-    .instruction_data(instruction_data_sf),
+instruction_data_decoder inst_data_si_decode(
+    .instruction_data(instruction_data_si),
     .rs1(rs1),
     .rs2(rs2)
 );

@@ -3,7 +3,7 @@ module memory(
     input logic clk_enable,
     input logic [31:0] addr,
     input logic [31:0] data_in,
-    input logic [22:0] microcode_s2,
+    input logic [21:0] microcode_s2,
     output logic [31:0] data_out,
     output logic [15:0] display_out
 );

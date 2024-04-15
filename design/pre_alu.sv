@@ -1,7 +1,7 @@
 module pre_alu (
     input logic clk,
     input logic clk_enable,
-    input logic [22:0] microcode_s0,
+    input logic [21:0] microcode_s0,
     input logic [24:0] instruction_data_s0,
     input logic [29:0] pc_s0,
     input logic [31:0] reg_out_a,
@@ -43,7 +43,7 @@ typedef enum bit[1:0] {
     REGA = 2'b11
 } pre_alu_a_select_e;
 
-typedef enum bit[1:0] {
+typedef enum bit[2:0] {
     LI  = 3'b000,
     ST  = 3'b001,
     PC  = 3'b010,

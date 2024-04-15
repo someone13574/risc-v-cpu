@@ -1,8 +1,8 @@
 module data_dep_detector (
-    input logic [31:0] microcode_s0,
-    input logic [31:0] microcode_s1,
-    input logic [31:0] microcode_s2,
-    input logic [31:0] microcode_s3,
+    input logic [21:0] microcode_s0,
+    input logic [21:0] microcode_s1,
+    input logic [21:0] microcode_s2,
+    input logic [21:0] microcode_s3,
     input logic [24:0] instruction_data_s0,
     input logic [24:0] instruction_data_s1,
     input logic [24:0] instruction_data_s2,
@@ -38,8 +38,8 @@ microcode_s3_decoder get_s3_we(
     .reg_write_enable(reg_we_s3)
 );
 
-logic rs1_s0;
-logic rs2_s0;
+logic [4:0] rs1_s0;
+logic [4:0] rs2_s0;
 
 instruction_data_decoder get_inst_data_s0(
     .instruction_data(instruction_data_s0),
@@ -47,9 +47,9 @@ instruction_data_decoder get_inst_data_s0(
     .rs2(rs2_s0)
 );
 
-logic rd_s1;
-logic rd_s2;
-logic rd_s3;
+logic [4:0] rd_s1;
+logic [4:0] rd_s2;
+logic [4:0] rd_s3;
 
 instruction_data_decoder get_rd_s1(
     .instruction_data(instruction_data_s1),

@@ -1,19 +1,19 @@
 module control_unit(
     input logic clk,
     input logic clk_enable,
-    input logic [22:0] microcode_s0,
-    input logic [24:0] instruction_data_sf,
+    input logic [21:0] microcode_s0,
+    input logic [24:0] instruction_data_si,
     input logic [31:0] reg_out_a,
     input logic [31:0] reg_out_b,
     input logic [29:0] jmp_addr,
-    output logic [22:0] microcode_s1,
-    output logic [22:0] microcode_s2,
-    output logic [22:0] microcode_s3,
+    output logic [21:0] microcode_s1,
+    output logic [21:0] microcode_s2,
+    output logic [21:0] microcode_s3,
     output logic [24:0] instruction_data_s0,
     output logic [24:0] instruction_data_s1,
     output logic [24:0] instruction_data_s2,
     output logic [24:0] instruction_data_s3,
-    output logic [31:0] ret_addr,
+    output logic [29:0] ret_addr,
     output logic [29:0] pc_s0
 );
 
@@ -37,7 +37,7 @@ logic [29:0] pc_s2;
 logic [2:0] cmp_op_select;
 logic jump_if_branch;
 logic branch;
-logic [1:0] branch_shift;
+logic [3:0] branch_shift;
 
 // reg data dep logic
 logic data_dep;
@@ -63,8 +63,8 @@ data_dep_detector data_dep_detect(
 );
 
 always_comb begin
-    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | branch | branch_shift[0] | branch_shift[1] | mem_in_use_shift[2];
-    ret_addr = {pc_s2, 2'b0};
+    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[2];
+    ret_addr = pc_s2;
 end
 
 always_ff @(posedge clk) begin
@@ -90,7 +90,7 @@ always_ff @(posedge clk) begin
             TRUE_CMP_OP:        branch <= 1'b1;
         endcase
 
-        branch_shift <= {branch_shift[0], branch};
+        branch_shift <= {branch_shift[2:0], branch};
         data_dep_shift <= {data_dep_shift[1:0], data_dep};
         mem_in_use_shift <= {mem_in_use_shift[1:0], mem_in_use};
 
@@ -99,11 +99,11 @@ always_ff @(posedge clk) begin
         pc_s1 <= pc_s0;
         pc_s2 <= pc_s1;
 
-        microcode_s1 <= blk_s0 ? 24'b0 : microcode_s0;
+        microcode_s1 <= blk_s0 ? 22'b0 : microcode_s0;
         microcode_s2 <= microcode_s1;
         microcode_s3 <= microcode_s2;
 
-        instruction_data_s0 <= instruction_data_sf;
+        instruction_data_s0 <= instruction_data_si;
         instruction_data_s1 <= blk_s0 ? 25'b0 : instruction_data_s0;
         instruction_data_s2 <= instruction_data_s1;
         instruction_data_s3 <= instruction_data_s2;
@@ -116,9 +116,13 @@ microcode_s0_decoder mc_s0_decode(
 );
 
 microcode_s1_decoder mc_s1_decode(
-    .microcode(microcode_10),
-    .jump_if_branch(jump_if_branch),
+    .microcode(microcode_s1),
     .mem_in_use(mem_in_use)
+);
+
+microcode_s2_decoder mc_s2_decode(
+    .microcode(microcode_s2),
+    .jump_if_branch(jump_if_branch)
 );
 
 endmodule

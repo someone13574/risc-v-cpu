@@ -22,11 +22,11 @@ This CPU is a 6-staged pipelined, meaning that the all stages execute in paralle
 #### `s1`
 
 - ALU execution
-- PC write if the branch condition is true
 
 #### `s2`
 
 - Memory read & write
+- PC write if the branch condition is true
 - Writeback input multiplexing
 
 #### `s3`
@@ -41,5 +41,5 @@ This CPU is a 6-staged pipelined, meaning that the all stages execute in paralle
 | `si`     | ✅          | ❌        | ❌              | ❌         | ❌         | ❌                    | ❌                     | ❌         | ❌              |
 | `s0`     | ✅          | ✅        | ✅              | ✅         | ❌         | ❌                    | ❌                     | ❌         | ❌              |
 | `s1`     | ✅          | ✅        | ❌              | ✅         | ✅         | ✅                    | ✅                     | ❌         | ❌              |
-| `s2`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ❌                     | ✅         | ❌              |
-| `s3`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ❌                     | ❌         | ✅              |
+| `s2`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ✅                     | ✅         | ❌              |
+| `s3`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ✅                     | ❌         | ✅              |

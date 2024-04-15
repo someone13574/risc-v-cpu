@@ -31,11 +31,10 @@ pub enum CmpOp {
 }
 
 // s1
-pub const JUMP_IF_BRANCH: u32 = 1 << 10;
-pub const MEM_IN_USE: u32 = 1 << 11;
+pub const MEM_IN_USE: u32 = 1 << 10;
 
 pub enum AluOp {
-    // 15, 14, 13, 12
+    // 14, 13, 12, 11
     Add,                 // 0000
     Subtract,            // 0001
     SetLessThanSigned,   // 0010
@@ -49,8 +48,9 @@ pub enum AluOp {
 }
 
 // s2
-pub const MEM_WRITE_ENABLE: u32 = 1 << 16;
-pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 17;
+pub const MEM_WRITE_ENABLE: u32 = 1 << 15;
+pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 16;
+pub const JUMP_IF_BRANCH: u32 = 1 << 17;
 
 // pre writeback select (19:18):
 // UpperImmediate, // 00
