@@ -2,23 +2,25 @@
 pub const CHECK_RS1_DEP: u32 = 1;
 pub const CHECK_RS2_DEP: u32 = 1 << 1;
 
-pub enum PreAluASelect {
-    // 2, 3
-    Upper,  // 00
-    Jump,   // 01
-    Branch, // 10
-}
+// pub enum PreAluASelect {
+//     // 3, 2
+//     Upper,  // 00
+//     Jump,   // 01
+//     Branch, // 10
+//     RegA,   // 11
+// }
 
-pub enum PreAluBSelect {
-    // 4, 5
-    LowerImmediate,     // 00
-    StoreTypeImmediate, // 01
-    Pc,                 // 10
-    Rs2,                // 11
-}
+// pub enum PreAluBSelect {
+//     // 6, 5, 4
+//     LowerImmediate,     // 000
+//     StoreTypeImmediate, // 001
+//     Pc,                 // 10
+//     Rs2,                // 011
+//     RegA,               // 100
+// }
 
 pub enum CmpOp {
-    // 8, 7, 6 (branches condition is evaluated in stage 0)
+    // 9, 8, 7 (branches condition is evaluated in stage 0)
     Equal,                // 001
     NotEqual,             // 010
     LessThan,             // 011
@@ -29,13 +31,11 @@ pub enum CmpOp {
 }
 
 // s1
-pub const USE_PRE_ALU_A_OVER_REG_OUT: u32 = 1 << 9;
-pub const USE_PRE_ALU_B_OVER_REG_OUT: u32 = 1 << 10;
-pub const JUMP_IF_BRANCH: u32 = 1 << 11;
-pub const MEM_IN_USE: u32 = 1 << 12;
+pub const JUMP_IF_BRANCH: u32 = 1 << 10;
+pub const MEM_IN_USE: u32 = 1 << 11;
 
 pub enum AluOp {
-    // 16, 15, 14, 13
+    // 15, 14, 13, 12
     Add,                 // 0000
     Subtract,            // 0001
     SetLessThanSigned,   // 0010
@@ -49,14 +49,14 @@ pub enum AluOp {
 }
 
 // s2
-pub const MEM_WRITE_ENABLE: u32 = 1 << 17;
-pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 18;
+pub const MEM_WRITE_ENABLE: u32 = 1 << 16;
+pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 17;
 
-// pre writeback select (20:19):
+// pre writeback select (19:18):
 // UpperImmediate, // 00
 // AluOut,         // 01
 // ReturnAddr,     // 10
 
 // s3
-pub const REG_WRITE_ENABLE: u32 = 1 << 21;
-pub const USE_PRE_WB_OVER_MEM_DATA: u32 = 1 << 22;
+pub const REG_WRITE_ENABLE: u32 = 1 << 20;
+pub const USE_PRE_WB_OVER_MEM_DATA: u32 = 1 << 21;

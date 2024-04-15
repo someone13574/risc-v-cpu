@@ -31,15 +31,7 @@ logic [31:0] mem_data_out;
 
 // microcode signals
 logic alu_out_to_mem_addr;
-logic use_pre_alu_a_over_reg_out;
-logic use_pre_alu_b_over_reg_out;
 logic use_pre_wb_over_mem_data;
-
-microcode_s1_decoder mc_s1_decode(
-    .microcode(microcode_s1),
-    .use_pre_alu_a_over_reg_out(use_pre_alu_a_over_reg_out),
-    .use_pre_alu_b_over_reg_out(use_pre_alu_b_over_reg_out)
-);
 
 microcode_s2_decoder mc_s2_decode(
     .microcode(microcode_s2),
@@ -106,8 +98,8 @@ memory mem(
 );
 
 // alu
-logic [31:0] pre_alu_a;
-logic [31:0] pre_alu_b;
+logic [31:0] alu_a;
+logic [31:0] alu_b;
 
 pre_alu pre_alu_mux(
     .clk(clk),
@@ -115,16 +107,9 @@ pre_alu pre_alu_mux(
     .microcode_s0(microcode_s0),
     .instruction_data_s0(instruction_data_s0),
     .pc_s0(pc_s0),
-    .pre_alu_a(pre_alu_a),
-    .pre_alu_b(pre_alu_b)
+    .pre_alu_a(alu_a),
+    .pre_alu_b(alu_b)
 );
-
-logic [31:0] alu_a;
-logic [31:0] alu_b;
-always_comb begin
-    alu_a = (use_pre_alu_a_over_reg_out) ? pre_alu_a : reg_out_a;
-    alu_b = (use_pre_alu_b_over_reg_out) ? pre_alu_b : reg_out_b;
-end
 
 alu alu(
     .clk(clk),

@@ -18,7 +18,7 @@ impl WritebackSelect {
     }
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq)]
 pub enum AluSrcA {
     UpperImmediate,
     JumpTypeImmediate,
@@ -26,18 +26,18 @@ pub enum AluSrcA {
     RegOutA,
 }
 
-impl From<AluSrcA> for Option<PreAluASelect> {
-    fn from(value: AluSrcA) -> Self {
-        match value {
-            AluSrcA::UpperImmediate => Some(PreAluASelect::Upper),
-            AluSrcA::JumpTypeImmediate => Some(PreAluASelect::Jump),
-            AluSrcA::BranchTypeImmediate => Some(PreAluASelect::Branch),
-            AluSrcA::RegOutA => None,
+impl AluSrcA {
+    pub fn decode(&self) -> u32 {
+        match self {
+            AluSrcA::UpperImmediate => 0,
+            AluSrcA::JumpTypeImmediate => 0b01 << 2,
+            AluSrcA::BranchTypeImmediate => 0b10 << 2,
+            AluSrcA::RegOutA => 0b11 << 2,
         }
     }
 }
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq)]
 pub enum AluSrcB {
     LowerImmediate,
     StoreTypeImmediate,
@@ -46,14 +46,14 @@ pub enum AluSrcB {
     RegOutB,
 }
 
-impl From<AluSrcB> for Option<PreAluBSelect> {
-    fn from(value: AluSrcB) -> Self {
-        match value {
-            AluSrcB::LowerImmediate => Some(PreAluBSelect::LowerImmediate),
-            AluSrcB::StoreTypeImmediate => Some(PreAluBSelect::StoreTypeImmediate),
-            AluSrcB::Pc => Some(PreAluBSelect::Pc),
-            AluSrcB::Rs2 => Some(PreAluBSelect::Rs2),
-            AluSrcB::RegOutB => None,
+impl AluSrcB {
+    pub fn decode(&self) -> u32 {
+        match self {
+            AluSrcB::LowerImmediate => 0,
+            AluSrcB::StoreTypeImmediate => 0b001 << 4,
+            AluSrcB::Pc => 0b010 << 4,
+            AluSrcB::Rs2 => 0b011 << 4,
+            AluSrcB::RegOutB => 0b100 << 4,
         }
     }
 }
@@ -63,9 +63,6 @@ pub enum AluDst {
     RegDataIn,
     Jump,
 }
-
-type OptionPreAluASelect = Option<PreAluASelect>;
-type OptionPreAluBSelect = Option<PreAluBSelect>;
 
 pub fn alu_operation(operation: AluOp, src_a: AluSrcA, src_b: AluSrcB, dst: AluDst) -> u32 {
     let mut signal = match operation {
@@ -81,30 +78,8 @@ pub fn alu_operation(operation: AluOp, src_a: AluSrcA, src_b: AluSrcB, dst: AluD
         AluOp::ShiftRightSignExt => 0b1001,
     } << 8;
 
-    signal |= match OptionPreAluASelect::from(src_a) {
-        Some(pre_select) => {
-            (match pre_select {
-                PreAluASelect::Upper => 0b00,
-                PreAluASelect::Jump => 0b01,
-                PreAluASelect::Branch => 0b10,
-            } << 2)
-                | USE_PRE_ALU_A_OVER_REG_OUT
-        }
-        None => 0,
-    };
-
-    signal |= match OptionPreAluBSelect::from(src_b) {
-        Some(pre_select) => {
-            (match pre_select {
-                PreAluBSelect::LowerImmediate => 0b00,
-                PreAluBSelect::StoreTypeImmediate => 0b01,
-                PreAluBSelect::Pc => 0b10,
-                PreAluBSelect::Rs2 => 0b11,
-            } << 4)
-                | USE_PRE_ALU_B_OVER_REG_OUT
-        }
-        None => 0,
-    };
+    signal |= src_a.decode();
+    signal |= src_b.decode();
 
     signal |= match dst {
         AluDst::MemAddr => CONNECT_ALU_OUT_TO_MEM_ADDR,
