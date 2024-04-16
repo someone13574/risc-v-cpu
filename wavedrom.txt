@@ -36,75 +36,82 @@
 
 {signal: [
   {name: 'clk', wave: 'p............'},
-  {name: 'pc', wave: '====36=======', data: [0, 1, 2, 3, 0, 1]},
-  {name: 'sf', wave: 'x====36======', data: [0, 1, 2, 3, 0, 1]},
-  {name: 's0 (reg_avail)', wave: 'xx====36=====', data: [0, 1, 2, 3, 0, 1]},
-  {name: 's1 (pre_alu avail)', wave: 'xxx344446====', data: [0,,,,,1]},
-  {name: 's2 (alu_out avail)', wave: 'xxxx=44446===', data: [0,,,,,1]},
-  {name: 's3 (mem_avail)', wave: 'xxxxx=44446==', data: [0,,,,,1]},
-  {name: 'rsx_s0', wave: '==88=========', data: [,,5, 5]},
-  {name: 'rsx_s1', wave: '==79=========', data: [,,,5]},
-  {name: 'rsx_s2', wave: '==77=========', data: [,,,,5]},
-  {name: 'rsx_s3', wave: '==77=========', data: [,,,,,5]},
-  {name: 'check_rsx', wave: '0.1.0........'},
-  {name: 'conflict', wave: '0..10........'},
-  {name: 'blk_s0_prop', wave: '0..4...0.....'},
-  {name: 'w_pc', wave: 'xxx3xxxxxxxxx', data: [0]}
+  {name: 'pc', wave: '======6======', data: [0, 1, 2, 3, 4, 5, 1]},
+  {name: 'sf', wave: 'x======6=====', data: [0, 1, 2, 3, 4, 5, 1]},
+  {name: 'si', wave: 'xx======6====', data: [0, 1, 2, 3, 4, 5, 1]},
+  {name: 's0', wave: 'xxx======6===', data: [0, 1, 2, 3, 4, 5, 1]},
+  {name: 's1', wave: 'xxxx=444446==', data: [0, '*1*',,,,,1]},
+  {name: 's2', wave: 'xxxxx=444446=', data: [0,,,,,,1]},
+  {name: 's3', wave: 'xxxxxx=444446', data: [0,,,,,,1]},
+  {name: 'check_rsx', wave: '0..1.0.......'},
+  {name: 'rsx_s0', wave: '===88========', data: [,,,5, 5]},
+  {name: 'rsx_s1', wave: '===79========', data: [,,,,5]},
+  {name: 'rsx_s2', wave: '===77========', data: [,,,,,5]},
+  {name: 'rsx_s3', wave: '===77========', data: [,,,,,,5]},
+  {name: 'conflict', wave: '0...40.......'},
+  {name: 'dep_shift', wave: '=====4444====', data: [0, 0, 0, 0, 0, 1, 10, 100, 1000, 0, 0, 0, 0]},
+  {name: 'blk_s0', wave: '0...4....0...'},
+  {name: 'w_pc', wave: 'xxxxx6xxxxxxx', data: ['*1*']}
 ]}
 
 # s2 conflict
 
 {signal: [
-  {name: 'clk', wave: 'p............'},
-  {name: 'pc', wave: '=====36======', data: [0, 1, 2, 3, 4, 1, 2]},
-  {name: 'sf', wave: 'x======6=====', data: [0, 1, 2, 3, 4, 1, 2]},
-  {name: 's0 (reg_avail)', wave: 'xx======6====', data: [0, 1, 2, 3, 4, 1, 2]},
-  {name: 's1 (pre_alu avail)', wave: 'xxx==44446===', data: [0, 1,,,,,2]},
-  {name: 's2 (alu_out avail)', wave: 'xxxx==44446==', data: [0, 1,,,,,2]},
-  {name: 's3 (mem_avail)', wave: 'xxxxx==44446=', data: [0, 1,,,,,2]},
-  {name: 'rsx_s0', wave: '==888========', data: [,,5, 7, 5]},
-  {name: 'rsx_s1', wave: '==777========', data: [,,,5, 7, 5]},
-  {name: 'rsx_s2', wave: '==779========', data: [,,,,5, 7, 5]},
-  {name: 'rsx_s3', wave: '==777========', data: [,,,,,5, 7, 5]},
-  {name: 'check_rsx', wave: '0.1..0.......'},
-  {name: 'conflict', wave: '0...10.......'},
-  {name: 'blk_s0_prop', wave: '0...4...0....'},
-  {name: 'w_pc', wave: 'xxxx3xxxxxxxx', data: [1]}
+  {name: 'clk', wave: 'p.............'},
+  {name: 'pc', wave: '=======6======', data: [0, 1, 2, 3, 4, 5, 6, 2]},
+  {name: 'sf', wave: 'x=======6=====', data: [0, 1, 2, 3, 4, 5, 6, 2]},
+  {name: 'si', wave: 'xx=======6====', data: [0, 1, 2, 3, 4, 5, 6, 2]},
+  {name: 's0', wave: 'xxx=======6===', data: [0, 1, 2, 3, 4, 5, 6, 2]},
+  {name: 's1', wave: 'xxxx==444446==', data: [0, 1, '*2*',,,,,2]},
+  {name: 's2', wave: 'xxxxx==444446=', data: [0, 1,,,,,,2]},
+  {name: 's3', wave: 'xxxxxx==444446', data: [0, 1,,,,,,2]},
+  {name: 'check_rsx', wave: '0..1..0.......'},
+  {name: 'rsx_s0', wave: '===888========', data: [,,,5, 7, 5]},
+  {name: 'rsx_s1', wave: '===777========', data: [,,,,5, 7, 5]},
+  {name: 'rsx_s2', wave: '===779========', data: [,,,,,5, 7, 5]},
+  {name: 'rsx_s3', wave: '===777========', data: [,,,,,,5, 7, 5]},
+  {name: 'conflict', wave: '0....40.......'},
+  {name: 'dep_shift', wave: '======4444====', data: [0, 0, 0, 0, 0, 0, 1, 10, 100, 1000, 0, 0, 0, 0]},
+  {name: 'blk_s0', wave: '0....4....0...'},
+  {name: 'w_pc', wave: 'xxxxxx6xxxxxxx', data: ['*2*']}
 ]}
 
 
 # s3 conflict
 
 {signal: [
-  {name: 'clk', wave: 'p............'},
-  {name: 'pc', wave: '======36=====', data: [0, 1, 2, 3, 4, 5, 2, 3]},
-  {name: 'sf', wave: 'x=======6====', data: [0, 1, 2, 3, 4, 5, 2, 3]},
-  {name: 's0 (reg_avail)', wave: 'xx=======6===', data: [0, 1, 2, 3, 4, 5, 2, 3]},
-  {name: 's1 (pre_alu avail)', wave: 'xxx===44446==', data: [0, 1, 2,,,,,3]},
-  {name: 's2 (alu_out avail)', wave: 'xxxx===44446=', data: [0, 1, 2,,,,,3]},
-  {name: 's3 (mem_avail)', wave: 'xxxxx===44446', data: [0, 1, 2,,,,,3]},
-  {name: 'rsx_s0', wave: '==8888=======', data: [,,5, 7, 3, 5]},
-  {name: 'rsx_s1', wave: '==7777=======', data: [,,,5, 7, 3, 5]},
-  {name: 'rsx_s2', wave: '==7777=======', data: [,,,,5, 7, 3, 5]},
-  {name: 'rsx_s3', wave: '==7779=======', data: [,,,,,5, 7, 3, 5]},
-  {name: 'check_rsx', wave: '0.1...0......'},
-  {name: 'conflict', wave: '0....10......'},
-  {name: 'blk_s0_prop', wave: '0....4...0...'},
-  {name: 'w_pc', wave: 'xxxxx3xxxxxxx', data: [2]}
+  {name: 'clk', wave: 'p.............'},
+  {name: 'pc', wave: '========6======', data: [0, 1, 2, 3, 4, 5, 6, 7, 3]},
+  {name: 'sf', wave: 'x========6=====', data: [0, 1, 2, 3, 4, 5, 6, 7, 3]},
+  {name: 'si', wave: 'xx========6====', data: [0, 1, 2, 3, 4, 5, 6, 7, 3]},
+  {name: 's0', wave: 'xxx========6===', data: [0, 1, 2, 3, 4, 5, 6, 7, 3]},
+  {name: 's1', wave: 'xxxx===444446==', data: [0, 1, 2, '*3*',,,,,3]},
+  {name: 's2', wave: 'xxxxx===444446=', data: [0, 1, 2,,,,,,3]},
+  {name: 's3', wave: 'xxxxxx===444446', data: [0, 1, 2,,,,,,3]},
+  {name: 'check_rsx', wave: '0..1..0.......'},
+  {name: 'rsx_s0', wave: '===8888========', data: [,,,5, 7, 3, 5]},
+  {name: 'rsx_s1', wave: '===7777========', data: [,,,,5, 7, 3, 5]},
+  {name: 'rsx_s2', wave: '===7777========', data: [,,,,,5, 7, 3, 5]},
+  {name: 'rsx_s3', wave: '===7779========', data: [,,,,,,5, 7, 3, 5]},
+  {name: 'conflict', wave: '0.....40.......'},
+  {name: 'dep_shift', wave: '=======4444====', data: [0, 0, 0, 0, 0, 0, 0, 1, 10, 100, 1000, 0, 0, 0, 0]},
+  {name: 'blk_s0', wave: '0.....4....0...'},
+  {name: 'w_pc', wave: 'xxxxxxx6xxxxxxx', data: ['*3*']}
 ]}
 
 # mem_in_use
 
 {signal: [
-  {name: 'clk', wave: 'p............'},
-  {name: 'pc', wave: '====9========', data: [0, 1, 2, 3, 3, 4]},
-  {name: 'sf', wave: 'x====9=======', data: [0, 1, 2, 3, 42, 4]},
-  {name: 's0 (reg_avail)', wave: 'xx====9======', data: [0, 1, 2, 3, 42, 4]},
-  {name: 's1 (pre_alu avail)', wave: 'xxx====x=====', data: [0, 1, 2, 3, 4]},
-  {name: 's2 (alu_out avail)', wave: 'xxxx9===x====', data: [0, 1, 2, 3, 4]},
-  {name: 's3 (mem_avail)', wave: 'xxxxx====x===', data: [0, 1, 2, 3, 4]},
-  {name: 'mem_in_use_avail', wave: '0.1...0......'},
-  {name: 'mem_in_use', wave: '0..10........'},
-  {name: 'blk_s0_prop', wave: '0.....10.....'},
-  {name: 'w_pc', wave: 'xxx=xxxxxxxxx', data: [3]}
+  {name: 'clk', wave: 'p...........'},
+  {name: 'pc', wave: '=====96======', data: [0, 1, 2, 3, '*4*', 4, 5]},
+  {name: 'sf', wave: 'x=====96=====', data: [0, 1, 2, 3, 4, 42, 5]},
+  {name: 'si', wave: 'xx=====96====', data: [0, 1, 2, 3, 4, 42, 5]},
+  {name: 's0', wave: 'xxx=====96===', data: [0, 1, 2, 3, 4, 42, 5]},
+  {name: 's1', wave: 'xxxx=====46==', data: [0, 1, 2, 3, 4,,5]},
+  {name: 's2', wave: 'xxxxx9====46=', data: [0, 1, 2, 3, 4,,5]},
+  {name: 's3', wave: 'xxxxxx=====46', data: [0, 1, 2, 3, 4,,5]},
+  {name: 'mem_in_use', wave: '0...10.......'},
+  {name: 'mem_in_use_shift', wave: '========4====', data: [0, 0, 0, 0, 0, 1, 10, 100, 1000, 0, 0, 0, 0]},
+  {name: 'blk_s0', wave: '0.......40...'},
+  {name: 'w_pc', wave: 'xxxx9xxxxxxxx', data: ['*4*']}
 ]}

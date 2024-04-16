@@ -37,15 +37,14 @@ logic [29:0] pc_s2;
 logic [2:0] cmp_op_select;
 logic jump_if_branch;
 logic branch;
-logic [3:0] branch_shift;
 
-// reg data dep logic
 logic data_dep;
-logic [2:0] data_dep_shift;
-
-// mem usage logic
 logic mem_in_use;
-logic [2:0] mem_in_use_shift;
+
+// shift registers
+logic [3:0] branch_shift;
+logic [3:0] data_dep_shift;
+logic [3:0] mem_in_use_shift;
 
 // blocks propagation of s0 to s1
 logic blk_s0;
@@ -63,15 +62,15 @@ data_dep_detector data_dep_detect(
 );
 
 always_comb begin
-    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[2];
+    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | data_dep_shift[3] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[3];
     ret_addr = pc_s2;
 end
 
 always_ff @(posedge clk) begin
     if (clk_enable) begin
-        if (jump_if_branch & branch) begin
+        if (jump_if_branch & branch_shift[0]) begin
             pc <= jmp_addr;
-        end else if (data_dep) begin
+        end else if (data_dep_shift[0]) begin
             pc <= pc_s1;
         end else if (mem_in_use) begin
             pc <= pc;
@@ -91,8 +90,8 @@ always_ff @(posedge clk) begin
         endcase
 
         branch_shift <= {branch_shift[2:0], branch};
-        data_dep_shift <= {data_dep_shift[1:0], data_dep};
-        mem_in_use_shift <= {mem_in_use_shift[1:0], mem_in_use};
+        data_dep_shift <= {data_dep_shift[2:0], data_dep};
+        mem_in_use_shift <= {mem_in_use_shift[2:0], mem_in_use};
 
         pc_sf <= pc;
         pc_s0 <= pc_sf;
