@@ -9,7 +9,8 @@
   {"name": "s2", "wave": "xxxxx9====46=", "data": [0, 1, 2, 3, 4, "",5]},
   {"name": "s3", "wave": "xxxxxx=====46", "data": [0, 1, 2, 3, 4, "",5]},
   {"name": "mem_in_use", "wave": "0...10......."},
-  {"name": "mem_in_use_shift", "wave": "========4====", "data": [0, 0, 0, 0, 0, 1, 10, 100, 1000, 0, 0, 0, 0]},
+  {"name": "mem_in_use_s3", "wave": "0.....10....."},
+  {"name": "mem_in_use_shift", "wave": "========4====", "data": [0, 0, 0, 0, 0, 0, 0, 1, 10, 0, 0, 0, 0]},
   {"name": "blk_s0", "wave": "0.......40..."},
   {"name": "w_pc", "wave": "xxxx8xxxxxxxx", "data": ["*4*"]}
 ]}

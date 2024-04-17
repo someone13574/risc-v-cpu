@@ -40,11 +40,12 @@ logic branch;
 
 logic data_dep;
 logic mem_in_use;
+logic mem_in_use_s3;
 
 // shift registers
 logic [3:0] branch_shift;
 logic [3:0] data_dep_shift;
-logic [3:0] mem_in_use_shift;
+logic [1:0] mem_in_use_shift;
 
 // blocks propagation of s0 to s1
 logic blk_s0;
@@ -62,7 +63,7 @@ data_dep_detector data_dep_detect(
 );
 
 always_comb begin
-    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | data_dep_shift[3] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[3];
+    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | data_dep_shift[3] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[1];
     ret_addr = pc_s2;
 end
 
@@ -91,7 +92,7 @@ always_ff @(posedge clk) begin
 
         branch_shift <= {branch_shift[2:0], branch};
         data_dep_shift <= {data_dep_shift[2:0], data_dep};
-        mem_in_use_shift <= {mem_in_use_shift[2:0], mem_in_use};
+        mem_in_use_shift <= {mem_in_use_shift[0], mem_in_use_s3};
 
         pc_sf <= pc;
         pc_s0 <= pc_sf;
@@ -122,6 +123,11 @@ microcode_s1_decoder mc_s1_decode(
 microcode_s2_decoder mc_s2_decode(
     .microcode(microcode_s2),
     .jump_if_branch(jump_if_branch)
+);
+
+microcode_s1_decoder mc_s1_decode_with_s3(
+    .microcode(microcode_s3),
+    .mem_in_use(mem_in_use_s3)
 );
 
 endmodule
