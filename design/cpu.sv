@@ -130,7 +130,7 @@ control_unit cu(
     .instruction_data_si(instruction_data_si),
     .reg_out_a(reg_out_a),
     .reg_out_b(reg_out_b),
-    .jmp_addr(alu_out),
+    .jmp_addr(alu_out[31:2]),
     .microcode_s1(microcode_s1),
     .microcode_s2(microcode_s2),
     .microcode_s3(microcode_s3),

@@ -64,8 +64,8 @@ always_ff @(posedge clk) begin
         case (pre_alu_b_select)
             LI:   pre_alu_b <= lower_immediate;
             ST:   pre_alu_b <= s_type_immediate;
-            PC:   pre_alu_b <= pc_s0;
-            RS2:  pre_alu_b <= rs2;
+            PC:   pre_alu_b <= {pc_s0, 2'b0};
+            RS2:  pre_alu_b <= {27'b0, rs2};
             REGB: pre_alu_b <= reg_out_b;
             default: pre_alu_b <= 32'b0;
         endcase
