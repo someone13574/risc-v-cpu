@@ -1,16 +1,15 @@
 {
-    "signal": [
-    {"name": "clk", "wave": "p............"},
-    {"name": "pc", "wave": "=============", "data": [0, 1, 2]},
-    {"name": "sf", "wave": "x============", "data": [0, 1, 2]},
-    {"name": "si", "wave": "xx===========", "data": [0, 1, 2]},
-    {"name": "s0", "wave": "xxx==========", "data": [0, 1, 2]},
-    {"name": "s1", "wave": "xxxx=========", "data": [0, 1, 2]},
-    {"name": "s2", "wave": "xxxxx========", "data": [0, 1, 2]},
-    {"name": "s3", "wave": "xxxxxx=======", "data": [0, 1, 2]},
-    {"name": "branch", "wave": "0...00......."},
-    {"name": "branch_shift", "wave": "=============", "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
-    {"name": "blk_s0", "wave": "0............"},
-    {"name": "w_pc", "wave": "xxxxx=xxxxxxx"}
-  ]
+  "signal": [
+  {"name": "clk", "wave": "p........."},
+  {"name": "sf", "wave": "==========", "data": [0, 1, 2]},
+  {"name": "si", "wave": "x=========", "data": [0, 1, 2]},
+  {"name": "s0", "wave": "xx========", "data": [0, 1, 2]},
+  {"name": "s1", "wave": "xxx=======", "data": [0, 1, 2]},
+  {"name": "s2", "wave": "xxxx======", "data": [0, 1, 2]},
+  {"name": "s3", "wave": "xxxxx=====", "data": [0, 1, 2]},
+  {"name": "branch", "wave": "0..00....."},
+  {"name": "branch_shift", "wave": "==========", "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+  {"name": "blk_s0", "wave": "0........."},
+  {"name": "w_pc", "wave": "xxxx=xxxxx"}
+]
 }
