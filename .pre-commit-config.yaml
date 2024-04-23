@@ -14,7 +14,7 @@ repos:
     hooks:
     -   id: remove-crlf
     -   id: forbid-tabs
-        exclude: "((.*)\\.vwf$|Makefile$)"
+        exclude: "Makefile$"
 -   repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
     hooks:

@@ -3,5 +3,6 @@
 /c_program/build
 /design/build
 /design/memory_init
+/design/sim_inputs.vwf
 /eeprom_writer/build
 /.vscode
