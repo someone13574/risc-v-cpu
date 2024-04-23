@@ -5,12 +5,12 @@ module rom(
     output logic [21:0] data
 );
 
-logic [21:0] rom[0:63];
+logic [23:0] rom[0:63];
 initial $readmemh("microcode.mem", rom, 0, 63);
 
 always_ff @(posedge clk) begin
     if (clk_enable) begin
-        data <= rom[addr];
+        data <= rom[addr][21:0];
     end
 end
 

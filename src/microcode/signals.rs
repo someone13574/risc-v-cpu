@@ -2,7 +2,7 @@
 pub const CHECK_RS1_DEP: u32 = 1;
 pub const CHECK_RS2_DEP: u32 = 1 << 1;
 
-// pub enum PreAluASelect {
+// pub enum PreAluASelect { (change generator.rs as well)
 //     // 3, 2
 //     Upper,  // 00
 //     Jump,   // 01
@@ -10,7 +10,7 @@ pub const CHECK_RS2_DEP: u32 = 1 << 1;
 //     RegA,   // 11
 // }
 
-// pub enum PreAluBSelect {
+// pub enum PreAluBSelect { (change generator.rs as well)
 //     // 6, 5, 4
 //     LowerImmediate,     // 000
 //     StoreTypeImmediate, // 001
@@ -20,6 +20,7 @@ pub const CHECK_RS2_DEP: u32 = 1 << 1;
 // }
 
 pub enum CmpOp {
+    // (change generator.rs as well)
     // 9, 8, 7 (branches condition is evaluated in stage 0)
     Equal,                // 001
     NotEqual,             // 010
@@ -34,6 +35,7 @@ pub enum CmpOp {
 pub const MEM_IN_USE: u32 = 1 << 10;
 
 pub enum AluOp {
+    // (change generator.rs as well)
     // 14, 13, 12, 11
     Add,                 // 0000
     Subtract,            // 0001
@@ -52,7 +54,7 @@ pub const MEM_WRITE_ENABLE: u32 = 1 << 15;
 pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 16;
 pub const JUMP_IF_BRANCH: u32 = 1 << 17;
 
-// pre writeback select (19:18):
+// pre writeback select (19:18): (change generator.rs as well)
 // UpperImmediate, // 00
 // AluOut,         // 01
 // ReturnAddr,     // 10

@@ -24,7 +24,7 @@ typedef enum bit[5:0] { // Include redundent bit to avoid confusing nop and load
     LOAD   = 6'b000001,
     STORE  = 6'b010001,
     IMM    = 6'b001001,
-    REG    = 6'b011010
+    REG    = 6'b011001
 } opcode_lookup_groups_e;
 
 

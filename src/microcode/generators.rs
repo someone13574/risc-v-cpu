@@ -11,8 +11,8 @@ impl WritebackSelect {
     pub fn decode(&self) -> u32 {
         match self {
             WritebackSelect::UpperImmediate => USE_PRE_WB_OVER_MEM_DATA,
-            WritebackSelect::AluOut => (0b01 << 19) & USE_PRE_WB_OVER_MEM_DATA,
-            WritebackSelect::ReturnAddr => (0b10 << 19) & USE_PRE_WB_OVER_MEM_DATA,
+            WritebackSelect::AluOut => (0b01 << 18) | USE_PRE_WB_OVER_MEM_DATA,
+            WritebackSelect::ReturnAddr => (0b10 << 18) | USE_PRE_WB_OVER_MEM_DATA,
             WritebackSelect::MemData => 0,
         }
     }
@@ -76,7 +76,7 @@ pub fn alu_operation(operation: AluOp, src_a: AluSrcA, src_b: AluSrcB, dst: AluD
         AluOp::ShiftLeft => 0b0111,
         AluOp::ShiftRight => 0b1000,
         AluOp::ShiftRightSignExt => 0b1001,
-    } << 8;
+    } << 11;
 
     signal |= src_a.decode();
     signal |= src_b.decode();
@@ -110,7 +110,7 @@ pub fn jump_operation(operation: CmpOp) -> u32 {
         CmpOp::LessThanUnsigned => 0b101,
         CmpOp::GreaterEqualUnsigned => 0b110,
         CmpOp::True => 0b111,
-    } << 12;
+    } << 7;
 
     signal |= JUMP_IF_BRANCH;
 
@@ -124,6 +124,8 @@ pub fn branch_operation(comparison: CmpOp) -> u32 {
         AluSrcB::Pc,
         AluDst::Jump,
     ) | jump_operation(comparison)
+        | CHECK_RS1_DEP
+        | CHECK_RS2_DEP
 }
 
 pub fn load_operation() -> u32 {
@@ -144,6 +146,7 @@ pub fn store_operation() -> u32 {
         AluDst::MemAddr,
     ) | MEM_WRITE_ENABLE
         | MEM_IN_USE
+        | CHECK_RS2_DEP
 }
 
 pub fn immediate_operation(operation: AluOp) -> u32 {

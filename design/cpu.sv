@@ -1,6 +1,10 @@
 module cpu(
     input logic clk,
-    output logic [15:0] display_out
+    output logic [15:0] display_out,
+    output logic [29:0] pc,
+    output logic [31:0] alu_out,
+    output logic [31:0] alu_a,
+    output logic [31:0] alu_b
 );
 
 // clk enable generator
@@ -17,16 +21,26 @@ logic [21:0] microcode_s3;
 
 logic [24:0] instruction_data_si;
 logic [24:0] instruction_data_s0;
-logic [24:0] instruction_data_s1;
 logic [24:0] instruction_data_s2;
 logic [24:0] instruction_data_s3;
 
+// logic [29:0] pc;
 logic [29:0] pc_s0;
 logic [29:0] ret_addr;
 
 logic [31:0] reg_out_a;
 logic [31:0] reg_out_b;
-logic [31:0] alu_out;
+logic [31:0] reg_out_b_s1;
+logic [31:0] reg_out_b_s2;
+
+always_ff @(posedge clk) begin
+    if (clk_enable) begin
+        reg_out_b_s1 <= reg_out_b;
+        reg_out_b_s2 <= reg_out_b_s1;
+    end
+end
+
+// logic [31:0] alu_out;
 logic [31:0] mem_data_out;
 
 // microcode signals
@@ -60,7 +74,7 @@ pre_writeback pre_writeback_mux(
     .clk_enable(clk_enable),
     .microcode_s2(microcode_s2),
     .instruction_data_s2(instruction_data_s2),
-    .alu_out(),
+    .alu_out(alu_out),
     .return_addr(ret_addr),
     .pre_wb(pre_wb)
 );
@@ -84,22 +98,22 @@ registers regs(
 // ram
 logic [31:0] mem_addr;
 always_comb begin
-    mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc_s0, 2'b0};
+    mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
 end
 
 memory mem(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(mem_addr),
-    .data_in(reg_out_b),
+    .data_in(reg_out_b_s2),
     .microcode_s2(microcode_s2),
     .data_out(mem_data_out),
     .display_out(display_out)
 );
 
 // alu
-logic [31:0] alu_a;
-logic [31:0] alu_b;
+// logic [31:0] alu_a;
+// logic [31:0] alu_b;
 
 pre_alu pre_alu_mux(
     .clk(clk),
@@ -135,9 +149,9 @@ control_unit cu(
     .microcode_s2(microcode_s2),
     .microcode_s3(microcode_s3),
     .instruction_data_s0(instruction_data_s0),
-    .instruction_data_s1(instruction_data_s1),
     .instruction_data_s2(instruction_data_s2),
     .instruction_data_s3(instruction_data_s3),
+    .pc(pc),
     .pc_s0(pc_s0),
     .ret_addr(ret_addr)
 );

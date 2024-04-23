@@ -51,7 +51,8 @@ pub fn generate_microcode() -> String {
                     AluSrcB::LowerImmediate,
                     AluDst::RegDataIn,
                 )
-                | jump_operation(CmpOp::True),
+                | jump_operation(CmpOp::True)
+                | CHECK_RS1_DEP,
             id: "JALR".to_string(),
             tailing_empty: 3,
         },
@@ -227,14 +228,14 @@ pub fn generate_microcode() -> String {
         .flat_map(|operation| {
             std::iter::once(format!(
                 "{} // {:<6}",
-                &hex::encode(operation.microcode.to_be_bytes()),
+                &hex::encode(operation.microcode.to_be_bytes())[2..],
                 operation.id
             ))
-            .chain(std::iter::repeat("00000000".to_string()).take(operation.tailing_empty))
+            .chain(std::iter::repeat("000000".to_string()).take(operation.tailing_empty))
         })
         .enumerate()
         .map(|(idx, operation)| {
-            if operation == "00000000" {
+            if operation == "000000" {
                 operation
             } else {
                 format!("{operation} ({:#08b}) ({:#04x})", idx, idx)

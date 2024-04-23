@@ -41,5 +41,5 @@ This CPU is a 6-staged pipelined, meaning that the all stages execute in paralle
 | `si`     | ✅          | ❌        | ❌              | ❌         | ❌         | ❌                    | ❌                     | ❌         | ❌              |
 | `s0`     | ✅          | ✅        | ✅              | ✅         | ❌         | ❌                    | ❌                     | ❌         | ❌              |
 | `s1`     | ✅          | ✅        | ❌              | ✅         | ✅         | ✅                    | ✅                     | ❌         | ❌              |
-| `s2`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ✅                     | ✅         | ❌              |
+| `s2`     | ✅          | ✅        | ✅              | ✅         | ❌         | ❌                    | ✅                     | ✅         | ❌              |
 | `s3`     | ✅          | ✅        | ❌              | ✅         | ❌         | ❌                    | ✅                     | ❌         | ✅              |

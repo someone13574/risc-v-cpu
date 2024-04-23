@@ -10,10 +10,10 @@ module control_unit(
     output logic [21:0] microcode_s2,
     output logic [21:0] microcode_s3,
     output logic [24:0] instruction_data_s0,
-    output logic [24:0] instruction_data_s1,
     output logic [24:0] instruction_data_s2,
     output logic [24:0] instruction_data_s3,
     output logic [29:0] ret_addr,
+    output logic [29:0] pc,
     output logic [29:0] pc_s0
 );
 
@@ -28,8 +28,7 @@ typedef enum bit[2:0] {
     TRUE_CMP_OP        = 3'b111
 } cmp_ops_e;
 
-logic [29:0] pc;
-logic [29:0] pc_sf;
+logic [29:0] pc_si;
 logic [29:0] pc_s1;
 logic [29:0] pc_s2;
 
@@ -43,13 +42,14 @@ logic mem_in_use;
 logic mem_in_use_s3;
 
 // shift registers
-logic [3:0] branch_shift;
-logic [3:0] data_dep_shift;
-logic [1:0] mem_in_use_shift;
+logic [2:0] branch_shift;
+logic [2:0] data_dep_shift;
+logic mem_in_use_s4;
 
 // blocks propagation of s0 to s1
 logic blk_s0;
 
+logic [24:0] instruction_data_s1;
 data_dep_detector data_dep_detect(
     .microcode_s0(microcode_s0),
     .microcode_s1(microcode_s1),
@@ -63,7 +63,7 @@ data_dep_detector data_dep_detect(
 );
 
 always_comb begin
-    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | data_dep_shift[3] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | branch_shift[3] | mem_in_use_shift[1];
+    blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | mem_in_use_s4;
     ret_addr = pc_s2;
 end
 
@@ -90,12 +90,12 @@ always_ff @(posedge clk) begin
             TRUE_CMP_OP:        branch <= 1'b1;
         endcase
 
-        branch_shift <= {branch_shift[2:0], branch};
-        data_dep_shift <= {data_dep_shift[2:0], data_dep};
-        mem_in_use_shift <= {mem_in_use_shift[0], mem_in_use_s3};
+        branch_shift <= {branch_shift[1:0], branch};
+        data_dep_shift <= {data_dep_shift[1:0], data_dep};
+        mem_in_use_s4 <= mem_in_use_s3;
 
-        pc_sf <= pc;
-        pc_s0 <= pc_sf;
+        pc_si <= pc;
+        pc_s0 <= pc_si;
         pc_s1 <= pc_s0;
         pc_s2 <= pc_s1;
 
