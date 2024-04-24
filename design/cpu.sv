@@ -1,14 +1,11 @@
 module cpu(
     input logic clk,
-    output logic [15:0] display_out,
-    output logic [29:0] pc,
-    output logic [31:0] alu_out,
-    output logic [31:0] alu_a,
-    output logic [31:0] alu_b
+    output logic clk_enable,
+    output logic [15:0] display_out
 );
 
 // clk enable generator
-logic clk_enable;
+// logic clk_enable;
 always_ff @(posedge clk) begin
     clk_enable <= ~clk_enable;
 end
@@ -24,7 +21,7 @@ logic [24:0] instruction_data_s0;
 logic [24:0] instruction_data_s2;
 logic [24:0] instruction_data_s3;
 
-// logic [29:0] pc;
+logic [29:0] pc;
 logic [29:0] pc_s0;
 logic [29:0] ret_addr;
 
@@ -40,7 +37,7 @@ always_ff @(posedge clk) begin
     end
 end
 
-// logic [31:0] alu_out;
+logic [31:0] alu_out;
 logic [31:0] mem_data_out;
 
 // microcode signals
@@ -112,8 +109,8 @@ memory mem(
 );
 
 // alu
-// logic [31:0] alu_a;
-// logic [31:0] alu_b;
+logic [31:0] alu_a;
+logic [31:0] alu_b;
 
 pre_alu pre_alu_mux(
     .clk(clk),

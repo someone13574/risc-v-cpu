@@ -1,5 +1,7 @@
 # Register Data-Dependency Avoidance
 
+**NOTE**: This document doesn't cover back-to-back dependencies or split dependencies. TODO.
+
 Due to this CPU being pipelined, it is possible for data-dependencies to be formed as a result of the register-read stage occuring before the register-write stage. To avoid this, the CPU detects this situations and delays the reading instruction until after the writing instruction is complete. For simplicity, this delay assumes the worst case situation, and thus delays for 5 cycles even if not necessary.
 
 Each of the situations below assume the instruction 0 is writing to register 5, while they differ for the instruction which is reading from register 5, ranging from instruction 1 for the "s1 conflict" and instruction 3 for the "s3 conflict".

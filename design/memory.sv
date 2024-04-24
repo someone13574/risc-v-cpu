@@ -24,7 +24,7 @@ always_ff @(posedge clk) begin
     end
 end
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-7")) mem7(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-7.mif")) mem7(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -33,7 +33,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-7")
     .q(data_out[3:0])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6")) mem6(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6.mif")) mem6(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -42,7 +42,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6")
     .q(data_out[7:4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5")) mem5(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5.mif")) mem5(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -51,7 +51,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5")
     .q(data_out[11:8])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4")) mem4(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4.mif")) mem4(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -60,7 +60,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4")
     .q(data_out[15:12])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3")) mem3(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3.mif")) mem3(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -69,7 +69,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3")
     .q(data_out[19:16])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2")) mem2(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2.mif")) mem2(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -78,7 +78,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2")
     .q(data_out[23:20])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1")) mem1(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1.mif")) mem1(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),
@@ -87,7 +87,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1")
     .q(data_out[27:24])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-0")) mem0(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-0.mif")) mem0(
     .inclock(clk),
     .outclock(clk),
     .we(write_enable),

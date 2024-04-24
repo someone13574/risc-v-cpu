@@ -7,6 +7,7 @@ module data_dep_detector (
     input logic [24:0] instruction_data_s1,
     input logic [24:0] instruction_data_s2,
     input logic [24:0] instruction_data_s3,
+    input logic currently_blocked,
     output logic data_dependency
 );
 
@@ -89,7 +90,7 @@ always_comb begin
     s2_dep = (rs1_s2_collision | rs2_s2_collision) & reg_we_s2;
     s3_dep = (rs1_s3_collision | rs2_s3_collision) & reg_we_s3;
 
-    data_dependency = s1_dep | s2_dep | s3_dep;
+    data_dependency = (s1_dep | s2_dep | s3_dep) & ~currently_blocked;
 end
 
 endmodule
