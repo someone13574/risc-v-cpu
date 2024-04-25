@@ -18,7 +18,7 @@ always_comb begin
     upper_immediate = {instruction_data[24:5], 12'b0};
     lower_immediate = {{21{instruction_data[24]}}, instruction_data[23:13]};
     j_type_immediate = {{12{instruction_data[24]}}, instruction_data[12:5], instruction_data[13], instruction_data[23:14], 1'b0};
-    b_type_immediate = {{20{instruction_data[24]}}, instruction_data[7], instruction_data[23:18], instruction_data[11:8], 1'b0};
+    b_type_immediate = {{20{instruction_data[24]}}, instruction_data[0], instruction_data[23:18], instruction_data[4:1], 1'b0};
     s_type_immediate = {{21{instruction_data[24]}}, instruction_data[23:18], instruction_data[4:0]};
 end
 
