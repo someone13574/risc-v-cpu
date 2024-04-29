@@ -1,7 +1,21 @@
 module cpu(
     input logic clk,
     output logic clk_enable,
-    output logic [15:0] display_out
+    output logic [15:0] display_out,
+    output logic [29:0] pc,
+    output logic [31:0] mem_data_out,
+    output logic [21:0] microcode_s0,
+    output logic [21:0] microcode_s1,
+    output logic [21:0] microcode_s2,
+    output logic [21:0] microcode_s3,
+    output logic blk_s0,
+    output logic data_dep,
+    output logic [2:0] data_dep_shift,
+    output logic branch,
+    output logic [2:0] branch_shift,
+    output logic [31:0] alu_a,
+    output logic [31:0] alu_b,
+    output logic [31:0] alu_out
 );
 
 // clk enable generator
@@ -11,17 +25,17 @@ always_ff @(posedge clk) begin
 end
 
 // shared signals
-logic [21:0] microcode_s0;
-logic [21:0] microcode_s1;
-logic [21:0] microcode_s2;
-logic [21:0] microcode_s3;
+//logic [21:0] microcode_s0;
+//logic [21:0] microcode_s1;
+//logic [21:0] microcode_s2;
+//logic [21:0] microcode_s3;
 
 logic [24:0] instruction_data_si;
 logic [24:0] instruction_data_s0;
 logic [24:0] instruction_data_s2;
 logic [24:0] instruction_data_s3;
 
-logic [29:0] pc;
+//logic [29:0] pc;
 logic [29:0] pc_s0;
 logic [29:0] ret_addr;
 
@@ -37,8 +51,8 @@ always_ff @(posedge clk) begin
     end
 end
 
-logic [31:0] alu_out;
-logic [31:0] mem_data_out;
+//logic [31:0] alu_out;
+//logic [31:0] mem_data_out;
 
 // microcode signals
 logic alu_out_to_mem_addr;
@@ -109,8 +123,8 @@ memory mem(
 );
 
 // alu
-logic [31:0] alu_a;
-logic [31:0] alu_b;
+//logic [31:0] alu_a;
+//logic [31:0] alu_b;
 
 pre_alu pre_alu_mux(
     .clk(clk),
@@ -150,7 +164,12 @@ control_unit cu(
     .instruction_data_s3(instruction_data_s3),
     .pc(pc),
     .pc_s0(pc_s0),
-    .ret_addr(ret_addr)
+    .ret_addr(ret_addr),
+    .blk_s0(blk_s0),
+    .data_dep(data_dep),
+    .data_dep_shift(data_dep_shift),
+    .branch(branch),
+    .branch_shift(branch_shift)
 );
 
 endmodule

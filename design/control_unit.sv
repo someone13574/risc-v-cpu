@@ -14,7 +14,12 @@ module control_unit(
     output logic [24:0] instruction_data_s3,
     output logic [29:0] ret_addr,
     output logic [29:0] pc,
-    output logic [29:0] pc_s0
+    output logic [29:0] pc_s0,
+    output logic blk_s0,
+    output logic data_dep,
+    output logic [2:0] data_dep_shift,
+    output logic branch,
+    output logic [2:0] branch_shift
 );
 
 typedef enum bit[2:0] {
@@ -37,19 +42,19 @@ logic [2:0] cmp_op_select;
 logic jump_if_branch;
 logic jump_if_branch_s1;
 logic raw_branch;
-logic branch;
+// logic branch;
 
-logic data_dep;
+// logic data_dep;
 logic mem_in_use;
 logic mem_in_use_s3;
 
 // shift registers
-logic [2:0] branch_shift;
-logic [2:0] data_dep_shift;
+// logic [2:0] branch_shift;
+// logic [2:0] data_dep_shift;
 logic mem_in_use_s4;
 
 // blocks propagation of s0 to s1
-logic blk_s0;
+// logic blk_s0;
 logic prev_blk_s0;
 
 logic [24:0] instruction_data_s1;
@@ -69,7 +74,7 @@ data_dep_detector data_dep_detect(
 always_comb begin
     branch = raw_branch & jump_if_branch_s1;
     blk_s0 = data_dep | data_dep_shift[0] | data_dep_shift[1] | data_dep_shift[2] | branch | branch_shift[0] | branch_shift[1] | branch_shift[2] | mem_in_use_s4;
-    ret_addr = pc_s2;
+    ret_addr = pc_s1;
 end
 
 always_ff @(posedge clk) begin
