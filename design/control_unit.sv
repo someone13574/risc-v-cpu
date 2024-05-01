@@ -1,14 +1,14 @@
 module control_unit(
     input logic clk,
     input logic clk_enable,
-    input logic [21:0] microcode_s0,
+    input logic [24:0] microcode_s0,
     input logic [24:0] instruction_data_si,
     input logic [31:0] reg_out_a,
     input logic [31:0] reg_out_b,
     input logic [29:0] jmp_addr,
-    output logic [21:0] microcode_s1,
-    output logic [21:0] microcode_s2,
-    output logic [21:0] microcode_s3,
+    output logic [24:0] microcode_s1,
+    output logic [24:0] microcode_s2,
+    output logic [24:0] microcode_s3,
     output logic [24:0] instruction_data_s0,
     output logic [24:0] instruction_data_s2,
     output logic [24:0] instruction_data_s3,
@@ -35,7 +35,6 @@ typedef enum bit[2:0] {
 
 logic [29:0] pc_si;
 logic [29:0] pc_s1;
-logic [29:0] pc_s2;
 
 // branch logic
 logic [2:0] cmp_op_select;
@@ -110,9 +109,8 @@ always_ff @(posedge clk) begin
         pc_si <= pc;
         pc_s0 <= pc_si;
         pc_s1 <= pc_s0;
-        pc_s2 <= pc_s1;
 
-        microcode_s1 <= blk_s0 ? 22'b0 : microcode_s0;
+        microcode_s1 <= blk_s0 ? 25'b0 : microcode_s0;
         microcode_s2 <= microcode_s1;
         microcode_s3 <= microcode_s2;
 

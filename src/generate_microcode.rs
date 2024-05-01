@@ -14,24 +14,22 @@ pub fn generate_microcode() -> String {
             tailing_empty: 0,
         },
         Operation {
-            microcode: REG_WRITE_ENABLE | WritebackSelect::UpperImmediate.decode(),
+            microcode: WritebackSelect::UpperImmediate.decode(),
             id: "LUI".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: REG_WRITE_ENABLE
-                | alu_operation(
-                    AluOp::Add,
-                    AluSrcA::UpperImmediate,
-                    AluSrcB::Pc,
-                    AluDst::RegDataIn,
-                ),
+            microcode: alu_operation(
+                AluOp::Add,
+                AluSrcA::UpperImmediate,
+                AluSrcB::Pc,
+                AluDst::RegDataIn,
+            ) | WritebackSelect::AluOut.decode(),
             id: "AUIPC".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: REG_WRITE_ENABLE
-                | WritebackSelect::ReturnAddr.decode()
+            microcode: WritebackSelect::ReturnAddr.decode()
                 | jump_operation(CmpOp::True)
                 | alu_operation(
                     AluOp::Add,
@@ -43,13 +41,12 @@ pub fn generate_microcode() -> String {
             tailing_empty: 0,
         },
         Operation {
-            microcode: REG_WRITE_ENABLE
-                | WritebackSelect::ReturnAddr.decode()
+            microcode: WritebackSelect::ReturnAddr.decode()
                 | alu_operation(
                     AluOp::Add,
                     AluSrcA::RegOutA,
                     AluSrcB::LowerImmediate,
-                    AluDst::RegDataIn,
+                    AluDst::Jump,
                 )
                 | jump_operation(CmpOp::True)
                 | CHECK_RS1_DEP,
@@ -87,42 +84,42 @@ pub fn generate_microcode() -> String {
             tailing_empty: 0,
         },
         Operation {
-            microcode: load_operation(),
+            microcode: load_operation(Truncation::Byte),
             id: "LB".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: load_operation(),
+            microcode: load_operation(Truncation::Half),
             id: "LH".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: load_operation(),
+            microcode: load_operation(Truncation::Word),
             id: "LW".to_string(),
             tailing_empty: 1,
         },
         Operation {
-            microcode: load_operation(),
+            microcode: load_operation(Truncation::UByte),
             id: "LBU".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: load_operation(),
+            microcode: load_operation(Truncation::UHalf),
             id: "LHU".to_string(),
             tailing_empty: 2,
         },
         Operation {
-            microcode: store_operation(),
+            microcode: store_operation(Truncation::Byte),
             id: "SB".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: store_operation(),
+            microcode: store_operation(Truncation::Half),
             id: "SH".to_string(),
             tailing_empty: 0,
         },
         Operation {
-            microcode: store_operation(),
+            microcode: store_operation(Truncation::Word),
             id: "SW".to_string(),
             tailing_empty: 5,
         },
@@ -228,14 +225,14 @@ pub fn generate_microcode() -> String {
         .flat_map(|operation| {
             std::iter::once(format!(
                 "{} // {:<6}",
-                &hex::encode(operation.microcode.to_be_bytes())[2..],
+                &hex::encode(operation.microcode.to_be_bytes())[1..],
                 operation.id
             ))
-            .chain(std::iter::repeat("000000".to_string()).take(operation.tailing_empty))
+            .chain(std::iter::repeat("0000000".to_string()).take(operation.tailing_empty))
         })
         .enumerate()
         .map(|(idx, operation)| {
-            if operation == "000000" {
+            if operation == "0000000" {
                 operation
             } else {
                 format!("{operation} ({:#08b}) ({:#04x})", idx, idx)

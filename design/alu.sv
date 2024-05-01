@@ -3,8 +3,9 @@ module alu(
     input logic clk_enable,
     input logic [31:0] a,
     input logic [31:0] b,
-    input logic [21:0] microcode_s1,
-    output logic [31:0] out
+    input logic [24:0] microcode_s1,
+    output logic [31:0] out,
+    output logic [31:0] offset_mem_addr
 );
 
 logic [3:0] alu_op_select;
@@ -41,6 +42,12 @@ always_ff @(posedge clk) begin
             SRA_ALU_OP:  out <= a >>> b[4:0];
             default:     out <= 32'b0;
         endcase
+
+        if (alu_op_select == ADD_ALU_OP) begin
+            offset_mem_addr <= a + b + 32'h4; // we will need a different mem addr for some eab's if misaligned
+        end else begin
+            offset_mem_addr <= 32'b0;
+        end
     end
 end
 

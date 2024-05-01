@@ -4,10 +4,10 @@ module cpu(
     output logic [15:0] display_out,
     output logic [29:0] pc,
     output logic [31:0] mem_data_out,
-    output logic [21:0] microcode_s0,
-    output logic [21:0] microcode_s1,
-    output logic [21:0] microcode_s2,
-    output logic [21:0] microcode_s3,
+    output logic [24:0] microcode_s0,
+    output logic [24:0] microcode_s1,
+    output logic [24:0] microcode_s2,
+    output logic [24:0] microcode_s3,
     output logic blk_s0,
     output logic data_dep,
     output logic [2:0] data_dep_shift,
@@ -15,7 +15,14 @@ module cpu(
     output logic [2:0] branch_shift,
     output logic [31:0] alu_a,
     output logic [31:0] alu_b,
-    output logic [31:0] alu_out
+    output logic [31:0] alu_out,
+    output logic reg_write_enable,
+    output logic [31:0] reg_data_in,
+    output logic [4:0] rd,
+    output logic [29:0] ret_addr,
+    output logic mem_write_enable,
+    output logic [31:0] reg_out_b_s2,
+    output logic [31:0] mem_addr
 );
 
 // clk enable generator
@@ -25,10 +32,10 @@ always_ff @(posedge clk) begin
 end
 
 // shared signals
-//logic [21:0] microcode_s0;
-//logic [21:0] microcode_s1;
-//logic [21:0] microcode_s2;
-//logic [21:0] microcode_s3;
+//logic [24:0] microcode_s0;
+//logic [24:0] microcode_s1;
+//logic [24:0] microcode_s2;
+//logic [24:0] microcode_s3;
 
 logic [24:0] instruction_data_si;
 logic [24:0] instruction_data_s0;
@@ -37,12 +44,12 @@ logic [24:0] instruction_data_s3;
 
 //logic [29:0] pc;
 logic [29:0] pc_s0;
-logic [29:0] ret_addr;
+// logic [29:0] ret_addr;
 
 logic [31:0] reg_out_a;
 logic [31:0] reg_out_b;
 logic [31:0] reg_out_b_s1;
-logic [31:0] reg_out_b_s2;
+// logic [31:0] reg_out_b_s2;
 
 always_ff @(posedge clk) begin
     if (clk_enable) begin
@@ -57,15 +64,27 @@ end
 // microcode signals
 logic alu_out_to_mem_addr;
 logic use_pre_wb_over_mem_data;
+logic use_truncation;
 
 microcode_s2_decoder mc_s2_decode(
     .microcode(microcode_s2),
     .alu_out_to_mem_addr(alu_out_to_mem_addr)
 );
 
+microcode_s2_decoder mc_s2_decode_with_s3(
+    .microcode(microcode_s3),
+    .alu_out_to_mem_addr(use_truncation)
+);
+
 microcode_s3_decoder mc_s3_decode(
     .microcode(microcode_s3),
-    .use_pre_wb_over_mem_data(use_pre_wb_over_mem_data)
+    .use_pre_wb_over_mem_data(use_pre_wb_over_mem_data),
+    .reg_write_enable(reg_write_enable)
+);
+
+instruction_data_decoder inst_data_s3_decode(
+    .instruction_data(instruction_data_s3),
+    .rd(rd)
 );
 
 // instruction decoder
@@ -90,7 +109,7 @@ pre_writeback pre_writeback_mux(
     .pre_wb(pre_wb)
 );
 
-logic [31:0] reg_data_in;
+// logic [31:0] reg_data_in;
 always_comb begin
     reg_data_in = (use_pre_wb_over_mem_data) ? pre_wb : mem_data_out;
 end
@@ -107,7 +126,8 @@ registers regs(
 );
 
 // ram
-logic [31:0] mem_addr;
+// logic [31:0] mem_addr;
+logic [31:0] offset_mem_addr;
 always_comb begin
     mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
 end
@@ -116,8 +136,11 @@ memory mem(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(mem_addr),
+    .offset_addr(offset_mem_addr),
     .data_in(reg_out_b_s2),
     .microcode_s2(microcode_s2),
+    .microcode_s3(microcode_s3),
+    .use_truncation(use_truncation),
     .data_out(mem_data_out),
     .display_out(display_out)
 );
@@ -144,7 +167,8 @@ alu alu(
     .a(alu_a),
     .b(alu_b),
     .microcode_s1(microcode_s1),
-    .out(alu_out)
+    .out(alu_out),
+    .offset_mem_addr(offset_mem_addr)
 );
 
 // control unit

@@ -2,7 +2,7 @@ module instruction_decoder(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] instruction,
-    output logic [21:0] microcode_s0,
+    output logic [24:0] microcode_s0,
     output logic [24:0] instruction_data_si
 );
 

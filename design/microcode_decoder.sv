@@ -1,5 +1,5 @@
 module microcode_s0_decoder (
-    input logic [21:0] microcode,
+    input logic [24:0] microcode,
     output logic check_rs1_dep,
     output logic check_rs2_dep,
     output logic [1:0] pre_alu_a_select,
@@ -18,7 +18,7 @@ end
 endmodule
 
 module microcode_s1_decoder (
-    input logic [21:0] microcode,
+    input logic [24:0] microcode,
     output logic mem_in_use,
     output logic [3:0] alu_op_select
 );
@@ -31,8 +31,10 @@ end
 endmodule
 
 module microcode_s2_decoder (
-    input logic [21:0] microcode,
+    input logic [24:0] microcode,
     output logic mem_write_enable,
+    output logic enable_upper_half,
+    output logic enable_byte_1,
     output logic alu_out_to_mem_addr,
     output logic jump_if_branch,
     output logic [1:0] pre_writeback_select
@@ -40,22 +42,26 @@ module microcode_s2_decoder (
 
 always_comb begin
     mem_write_enable     = microcode[15];
-    alu_out_to_mem_addr  = microcode[16];
-    jump_if_branch       = microcode[17];
-    pre_writeback_select = microcode[19:18];
+    enable_upper_half     = microcode[16];
+    enable_byte_1         = microcode[17];
+    alu_out_to_mem_addr  = microcode[18];
+    jump_if_branch       = microcode[19];
+    pre_writeback_select = microcode[21:20];
 end
 
 endmodule
 
 module microcode_s3_decoder (
-    input logic [21:0] microcode,
+    input logic [24:0] microcode,
     output logic reg_write_enable,
-    output logic use_pre_wb_over_mem_data
+    output logic use_pre_wb_over_mem_data,
+    output logic sext_mem_data_out
 );
 
 always_comb begin
-    reg_write_enable         = microcode[20];
-    use_pre_wb_over_mem_data = microcode[21];
+    reg_write_enable         = microcode[22];
+    use_pre_wb_over_mem_data = microcode[23];
+    sext_mem_data_out        = microcode[24];
 end
 
 endmodule

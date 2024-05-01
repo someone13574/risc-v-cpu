@@ -1,8 +1,8 @@
 module data_dep_detector (
-    input logic [21:0] microcode_s0,
-    input logic [21:0] microcode_s1,
-    input logic [21:0] microcode_s2,
-    input logic [21:0] microcode_s3,
+    input logic [24:0] microcode_s0,
+    input logic [24:0] microcode_s1,
+    input logic [24:0] microcode_s2,
+    input logic [24:0] microcode_s3,
     input logic [24:0] instruction_data_s0,
     input logic [24:0] instruction_data_s1,
     input logic [24:0] instruction_data_s2,

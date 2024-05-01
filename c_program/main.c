@@ -47,11 +47,5 @@ uint16_t encode_seven_segment(uint32_t number)
 void __attribute__((naked)) _start(void)
 {
     uint16_t* seven_segments = (uint16_t*)0x7fe;
-    uint32_t i = 0;
-    while (1) {
-        i += 1;
-        *seven_segments = encode_seven_segment(i);
-
-        for (uint32_t n = 0; n < 1000000; n++) { }
-    }
+    *seven_segments = encode_seven_segment(0x42);
 }

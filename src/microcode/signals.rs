@@ -51,14 +51,17 @@ pub enum AluOp {
 
 // s2
 pub const MEM_WRITE_ENABLE: u32 = 1 << 15;
-pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 16;
-pub const JUMP_IF_BRANCH: u32 = 1 << 17;
+pub const ENABLE_UPPER_HALF: u32 = 1 << 16; // and s3
+pub const ENABLE_BYTE_1: u32 = 1 << 17; // and s3
+pub const CONNECT_ALU_OUT_TO_MEM_ADDR: u32 = 1 << 18;
+pub const JUMP_IF_BRANCH: u32 = 1 << 19;
 
-// pre writeback select (19:18): (change generator.rs as well)
+// pre writeback select (21:20): (change generator.rs as well)
 // UpperImmediate, // 00
 // AluOut,         // 01
 // ReturnAddr,     // 10
 
 // s3
-pub const REG_WRITE_ENABLE: u32 = 1 << 20;
-pub const USE_PRE_WB_OVER_MEM_DATA: u32 = 1 << 21;
+pub const REG_WRITE_ENABLE: u32 = 1 << 22;
+pub const USE_PRE_WB_OVER_MEM_DATA: u32 = 1 << 23;
+pub const SEXT_MEM_DATA_OUT: u32 = 1 << 24;

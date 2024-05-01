@@ -1,7 +1,7 @@
 module pre_alu (
     input logic clk,
     input logic clk_enable,
-    input logic [21:0] microcode_s0,
+    input logic [24:0] microcode_s0,
     input logic [24:0] instruction_data_s0,
     input logic [29:0] pc_s0,
     input logic [31:0] reg_out_a,

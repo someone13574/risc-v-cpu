@@ -1,7 +1,7 @@
 module registers(
     input logic clk,
     input logic clk_enable,
-    input logic [21:0] microcode_s3,
+    input logic [24:0] microcode_s3,
     input logic [24:0] instruction_data_si,
     input logic [24:0] instruction_data_s3,
     input logic [31:0] data_in,

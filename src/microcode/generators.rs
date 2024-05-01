@@ -10,10 +10,12 @@ pub enum WritebackSelect {
 impl WritebackSelect {
     pub fn decode(&self) -> u32 {
         match self {
-            WritebackSelect::UpperImmediate => USE_PRE_WB_OVER_MEM_DATA,
-            WritebackSelect::AluOut => (0b01 << 18) | USE_PRE_WB_OVER_MEM_DATA,
-            WritebackSelect::ReturnAddr => (0b10 << 18) | USE_PRE_WB_OVER_MEM_DATA,
-            WritebackSelect::MemData => 0,
+            WritebackSelect::UpperImmediate => USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE,
+            WritebackSelect::AluOut => (0b01 << 20) | USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE,
+            WritebackSelect::ReturnAddr => {
+                (0b10 << 21) | USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE
+            }
+            WritebackSelect::MemData => REG_WRITE_ENABLE,
         }
     }
 }
@@ -128,29 +130,54 @@ pub fn branch_operation(comparison: CmpOp) -> u32 {
         | CHECK_RS2_DEP
 }
 
-pub fn load_operation() -> u32 {
-    alu_operation(
+pub enum Truncation {
+    Byte,
+    Half,
+    Word,
+    UByte,
+    UHalf,
+}
+
+pub fn load_operation(truncation: Truncation) -> u32 {
+    let signal = alu_operation(
         AluOp::Add,
         AluSrcA::RegOutA,
         AluSrcB::LowerImmediate,
         AluDst::MemAddr,
     ) | WritebackSelect::MemData.decode()
-        | MEM_IN_USE
+        | MEM_IN_USE;
+
+    match truncation {
+        Truncation::Byte => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF | SEXT_MEM_DATA_OUT,
+        Truncation::Half => signal | ENABLE_UPPER_HALF | SEXT_MEM_DATA_OUT,
+        Truncation::Word => signal | SEXT_MEM_DATA_OUT,
+        Truncation::UByte => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF,
+        Truncation::UHalf => signal | ENABLE_UPPER_HALF,
+    }
 }
 
-pub fn store_operation() -> u32 {
-    alu_operation(
+pub fn store_operation(truncation: Truncation) -> u32 {
+    let signal = alu_operation(
         AluOp::Add,
         AluSrcA::RegOutA,
         AluSrcB::StoreTypeImmediate,
         AluDst::MemAddr,
     ) | MEM_WRITE_ENABLE
         | MEM_IN_USE
-        | CHECK_RS2_DEP
+        | CHECK_RS2_DEP;
+
+    match truncation {
+        Truncation::Byte => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF,
+        Truncation::Half => signal | ENABLE_UPPER_HALF,
+        Truncation::Word => signal,
+        Truncation::UByte | Truncation::UHalf => {
+            unimplemented!("Store truncations are inherently not signed")
+        }
+    }
 }
 
 pub fn immediate_operation(operation: AluOp) -> u32 {
-    REG_WRITE_ENABLE
+    WritebackSelect::AluOut.decode()
         | alu_operation(
             operation,
             AluSrcA::RegOutA,
@@ -160,11 +187,12 @@ pub fn immediate_operation(operation: AluOp) -> u32 {
 }
 
 pub fn immediate_shift_operation(operation: AluOp) -> u32 {
-    REG_WRITE_ENABLE | alu_operation(operation, AluSrcA::RegOutA, AluSrcB::Rs2, AluDst::RegDataIn)
+    WritebackSelect::AluOut.decode()
+        | alu_operation(operation, AluSrcA::RegOutA, AluSrcB::Rs2, AluDst::RegDataIn)
 }
 
 pub fn register_operation(operation: AluOp) -> u32 {
-    REG_WRITE_ENABLE
+    WritebackSelect::AluOut.decode()
         | alu_operation(
             operation,
             AluSrcA::RegOutA,
