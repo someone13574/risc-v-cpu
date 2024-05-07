@@ -13,7 +13,7 @@ impl WritebackSelect {
             WritebackSelect::UpperImmediate => USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE,
             WritebackSelect::AluOut => (0b01 << 20) | USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE,
             WritebackSelect::ReturnAddr => {
-                (0b10 << 21) | USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE
+                (0b10 << 20) | USE_PRE_WB_OVER_MEM_DATA | REG_WRITE_ENABLE
             }
             WritebackSelect::MemData => REG_WRITE_ENABLE,
         }
@@ -148,11 +148,11 @@ pub fn load_operation(truncation: Truncation) -> u32 {
         | MEM_IN_USE;
 
     match truncation {
-        Truncation::Byte => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF | SEXT_MEM_DATA_OUT,
-        Truncation::Half => signal | ENABLE_UPPER_HALF | SEXT_MEM_DATA_OUT,
-        Truncation::Word => signal | SEXT_MEM_DATA_OUT,
-        Truncation::UByte => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF,
-        Truncation::UHalf => signal | ENABLE_UPPER_HALF,
+        Truncation::Byte => signal | SEXT_MEM_DATA_OUT,
+        Truncation::Half => signal | ENABLE_BYTE_1 | SEXT_MEM_DATA_OUT,
+        Truncation::Word => signal | ENABLE_BYTE_1 | ENABLE_UPPER_HALF | SEXT_MEM_DATA_OUT,
+        Truncation::UByte => signal,
+        Truncation::UHalf => signal | ENABLE_BYTE_1,
     }
 }
 

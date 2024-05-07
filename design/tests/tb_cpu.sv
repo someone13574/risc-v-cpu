@@ -9,12 +9,14 @@ cpu cpu(
 initial begin
     $dumpfile("build/tb_cpu.vcd");
     $dumpvars(0, tb_cpu);
+
+    forever begin
+        clk = 0;
+        #10 clk = ~clk;
+    end
 end
 
-always #10 clk = ~clk;
-
 initial begin
-    clk = 0;
     #1000;
 
     $finish();

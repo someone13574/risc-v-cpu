@@ -14,12 +14,7 @@ module control_unit(
     output logic [24:0] instruction_data_s3,
     output logic [29:0] ret_addr,
     output logic [29:0] pc,
-    output logic [29:0] pc_s0,
-    output logic blk_s0,
-    output logic data_dep,
-    output logic [2:0] data_dep_shift,
-    output logic branch,
-    output logic [2:0] branch_shift
+    output logic [29:0] pc_s0
 );
 
 typedef enum bit[2:0] {
@@ -38,22 +33,21 @@ logic [29:0] pc_s1;
 
 // branch logic
 logic [2:0] cmp_op_select;
-logic jump_if_branch;
 logic jump_if_branch_s1;
 logic raw_branch;
-// logic branch;
+logic branch;
 
-// logic data_dep;
+logic data_dep;
 logic mem_in_use;
 logic mem_in_use_s3;
 
 // shift registers
-// logic [2:0] branch_shift;
-// logic [2:0] data_dep_shift;
+logic [2:0] branch_shift;
+logic [2:0] data_dep_shift;
 logic mem_in_use_s4;
 
 // blocks propagation of s0 to s1
-// logic blk_s0;
+logic blk_s0;
 logic prev_blk_s0;
 
 logic [24:0] instruction_data_s1;
@@ -134,11 +128,6 @@ microcode_s1_decoder mc_s1_decode(
 microcode_s2_decoder mc_s1_really_s2_decode(
     .microcode(microcode_s1),
     .jump_if_branch(jump_if_branch_s1)
-);
-
-microcode_s2_decoder mc_s2_decode(
-    .microcode(microcode_s2),
-    .jump_if_branch(jump_if_branch)
 );
 
 microcode_s1_decoder mc_s1_decode_with_s3(

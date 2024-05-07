@@ -27,25 +27,34 @@ const uint8_t SEVEN_SEGMENT_LOOKUP[16] = {
     0b01110001, // F
 };
 
-uint16_t encode_seven_segment(uint32_t number)
+uint16_t encode_seven_segment(uint8_t number)
 {
-    // uint32_t remainder = number;
-    // uint32_t count = 0;
+    uint8_t remainder = number;
+    uint8_t count = 0;
 
-    // while (remainder > 10) {
-    //     remainder -= 10;
-    //     count += 1;
-    // }
+    while (remainder >= 10) {
+        remainder -= 10;
+        count += 1;
+    }
 
-    // while (count > 10) {
-    //     count -= 10;
-    // }
+    while (count >= 10) {
+        count -= 10;
+    }
 
-    return ((uint16_t)SEVEN_SEGMENT_LOOKUP[(number >> 4) & 0b1111] << 8) | (uint16_t)SEVEN_SEGMENT_LOOKUP[number & 0b1111];
+    return ((uint16_t)SEVEN_SEGMENT_LOOKUP[count & 0b1111]) | ((uint16_t)SEVEN_SEGMENT_LOOKUP[remainder & 0b1111] << 8);
 }
 
 void __attribute__((naked)) _start(void)
 {
-    uint16_t* seven_segments = (uint16_t*)0x7fe;
-    *seven_segments = encode_seven_segment(0x42);
+    uint16_t volatile* seven_segments = (uint16_t*)0x7fe;
+
+    uint16_t i = 0x0;
+    while (1) {
+        *seven_segments = encode_seven_segment(i);
+
+        i += 1;
+        for (uint32_t n = 0; n < 250000; n++) {
+            __asm__ __volatile__("nop");
+        }
+    }
 }

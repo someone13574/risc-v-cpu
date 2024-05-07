@@ -18,12 +18,17 @@ logic [LPM_WIDTH - 1:0] mem [0:2 ** LPM_WIDTHAD - 1];
 
 initial $readmemh(LPM_FILE, mem);
 
+logic [LPM_WIDTH - 1:0] q_inner;
+always_ff @(posedge outclock) begin
+    q <= q_inner;
+end
+
 always_ff @(posedge inclock) begin
     if (we) begin
         mem[address] <= data;
     end
 
-    q <= mem[address];
+    q_inner <= mem[address];
 end
 
 endmodule
