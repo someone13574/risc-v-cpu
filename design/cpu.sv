@@ -1,12 +1,14 @@
 module cpu(
     input logic clk,
+    input logic rx,
     output logic [15:0] display_out
 );
 
 // clk enable generator
 logic clk_enable;
+logic clk_enable_non_filter;
 always_ff @(posedge clk) begin
-    clk_enable <= ~clk_enable;
+    clk_enable_non_filter <= ~clk_enable_non_filter;
 end
 
 // shared signals
@@ -97,11 +99,36 @@ registers regs(
     .data_out_b(reg_out_b)
 );
 
+// upload receiver
+logic upload_mem_we;
+logic [31:0] upload_mem_addr;
+logic [7:0] upload_out;
+logic upload_complete;
+
+upload_rx #(.BAUD_RATE(9600)) upload_rx(
+    .clk(clk),
+    .clk_enable(clk_enable_non_filter),
+    .rx(rx),
+    .we(upload_mem_we),
+    .addr(upload_mem_addr),
+    .uart_out(upload_out),
+    .complete(upload_complete)
+);
+
+always_comb begin
+    clk_enable <= clk_enable_non_filter & upload_complete;
+end
+
 // ram
 logic [31:0] mem_addr;
 logic [31:0] offset_mem_addr;
+logic [24:0] mem_mc_s2;
+logic [31:0] mem_data_in;
 always_comb begin
-    mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
+    mem_data_in = (upload_mem_we)       ? {24'b0, upload_out} : reg_out_b_s2;
+    mem_mc_s2   = (upload_mem_we)       ? 25'h8000            : microcode_s2;
+    mem_addr    = (upload_mem_we)       ? upload_mem_addr     :
+                  (alu_out_to_mem_addr) ? alu_out             : {pc, 2'b0};
 end
 
 memory mem(
@@ -109,8 +136,8 @@ memory mem(
     .clk_enable(clk_enable),
     .addr(mem_addr),
     .offset_addr(offset_mem_addr),
-    .data_in(reg_out_b_s2),
-    .microcode_s2(microcode_s2),
+    .data_in(mem_data_in),
+    .microcode_s2(mem_mc_s2),
     .microcode_s3(microcode_s3),
     .use_truncation(use_truncation),
     .data_out(mem_data_out),
