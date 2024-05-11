@@ -33,7 +33,7 @@ always_ff @(posedge clk) begin
     end
 
     // Trigger read
-    if ((rx_counter == COUNTER_MAX) & active) begin
+    if ((rx_counter == COUNTER_MAX[COUNTER_SIZE - 1:0]) & active) begin
         rx_counter <= 0;
         shift <= {rx, shift[9:1]};
     end

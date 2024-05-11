@@ -1,9 +1,12 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module instruction_decoder(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] instruction,
-    output logic [24:0] microcode_s0,
-    output logic [24:0] instruction_data_si
+    output logic [microcode::WIDTH - 1:0] microcode_s0,
+    output logic [instruction_data::WIDTH - 1:0] instruction_data_si
 );
 
 logic [5:0] microcode_lookup;

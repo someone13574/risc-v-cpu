@@ -1,71 +1,46 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module data_dep_detector (
-    input logic [24:0] microcode_s0,
-    input logic [24:0] microcode_s1,
-    input logic [24:0] microcode_s2,
-    input logic [24:0] microcode_s3,
-    input logic [24:0] instruction_data_s0,
-    input logic [24:0] instruction_data_s1,
-    input logic [24:0] instruction_data_s2,
-    input logic [24:0] instruction_data_s3,
+    input logic [microcode::WIDTH - 1:0] microcode_s0,
+    input logic [microcode::WIDTH - 1:0] microcode_s1,
+    input logic [microcode::WIDTH - 1:0] microcode_s2,
+    input logic [microcode::WIDTH - 1:0] microcode_s3,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s0,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s1,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s2,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s3,
     input logic currently_blocked,
     output logic data_dependency
 );
 
 logic check_rs1;
 logic check_rs2;
-
-microcode_s0_decoder get_check_dep(
-    .microcode(microcode_s0),
-    .check_rs1_dep(check_rs1),
-    .check_rs2_dep(check_rs2)
-);
-
 logic reg_we_s1;
 logic reg_we_s2;
 logic reg_we_s3;
 
-microcode_s3_decoder get_s1_we(
-    .microcode(microcode_s1),
-    .reg_write_enable(reg_we_s1)
-);
-
-microcode_s3_decoder get_s2_we(
-    .microcode(microcode_s2),
-    .reg_write_enable(reg_we_s2)
-);
-
-microcode_s3_decoder get_s3_we(
-    .microcode(microcode_s3),
-    .reg_write_enable(reg_we_s3)
-);
+always_comb begin
+    check_rs1 = microcode::mcs0_check_rs1_dep(microcode_s0);
+    check_rs2 = microcode::mcs0_check_rs2_dep(microcode_s0);
+    reg_we_s1 = microcode::mcs3_reg_we(microcode_s1);
+    reg_we_s2 = microcode::mcs3_reg_we(microcode_s2);
+    reg_we_s3 = microcode::mcs3_reg_we(microcode_s3);
+end
 
 logic [4:0] rs1_s0;
 logic [4:0] rs2_s0;
-
-instruction_data_decoder get_inst_data_s0(
-    .instruction_data(instruction_data_s0),
-    .rs1(rs1_s0),
-    .rs2(rs2_s0)
-);
-
 logic [4:0] rd_s1;
 logic [4:0] rd_s2;
 logic [4:0] rd_s3;
 
-instruction_data_decoder get_rd_s1(
-    .instruction_data(instruction_data_s1),
-    .rd(rd_s1)
-);
-
-instruction_data_decoder get_rd_s2(
-    .instruction_data(instruction_data_s2),
-    .rd(rd_s2)
-);
-
-instruction_data_decoder get_rd_s3(
-    .instruction_data(instruction_data_s3),
-    .rd(rd_s3)
-);
+always_comb begin
+    rs1_s0 = instruction_data::rs1(instruction_data_s0);
+    rs2_s0 = instruction_data::rs2(instruction_data_s0);
+    rd_s1 = instruction_data::rd(instruction_data_s1);
+    rd_s2 = instruction_data::rd(instruction_data_s2);
+    rd_s3 = instruction_data::rd(instruction_data_s3);
+end
 
 logic rs1_s1_collision;
 logic rs1_s2_collision;

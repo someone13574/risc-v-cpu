@@ -1,18 +1,19 @@
+`include "microcode.sv"
+
 module alu(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] a,
     input logic [31:0] b,
-    input logic [24:0] microcode_s1,
+    input logic [microcode::WIDTH - 1:0] microcode_s1,
     output logic [31:0] out,
     output logic [31:0] offset_mem_addr
 );
 
 logic [3:0] alu_op_select;
-microcode_s1_decoder mc_s1_decode(
-    .microcode(microcode_s1),
-    .alu_op_select(alu_op_select)
-);
+always_comb begin
+    alu_op_select = microcode::mcs1_alu_op_select(microcode_s1);
+end
 
 typedef enum bit[3:0] {
     ADD_ALU_OP  = 4'b0000,
