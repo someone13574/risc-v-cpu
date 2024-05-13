@@ -4,7 +4,7 @@
 module cpu(
     input logic clk,
     input logic rx,
-    output logic [15:0] display_out
+    output logic [15:0] seven_segment_mmio
 );
 
 // clk enable generator
@@ -47,11 +47,9 @@ logic [31:0] mem_data_out;
 // microcode signals
 logic alu_out_to_mem_addr;
 logic use_pre_wb_over_mem_data;
-logic use_truncation;
 
 always_comb begin
     alu_out_to_mem_addr = microcode::mcs2_alu_out_over_pc(microcode_s2);
-    use_truncation = microcode::mcs2_alu_out_over_pc(microcode_s3);
     use_pre_wb_over_mem_data = microcode::mcs3_pre_wb_over_mem_data(microcode_s3);
 end
 
@@ -118,24 +116,26 @@ logic [31:0] mem_addr;
 logic [31:0] offset_mem_addr;
 logic [microcode::WIDTH - 1:0] mem_mc_s2;
 logic [31:0] mem_data_in;
+mmio_outputs_if mmio_outputs;
+
 always_comb begin
     mem_data_in = (upload_mem_we)       ? {24'b0, upload_out} : reg_out_b_s2;
     mem_mc_s2   = (upload_mem_we)       ? 25'h8000            : microcode_s2;
     mem_addr    = (upload_mem_we)       ? upload_mem_addr     :
                   (alu_out_to_mem_addr) ? alu_out             : {pc, 2'b0};
+    seven_segment_mmio = mmio_outputs.seven_segment;
 end
 
 memory mem(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(mem_addr),
-    .offset_addr(offset_mem_addr),
+    .next_addr(offset_mem_addr),
     .data_in(mem_data_in),
     .microcode_s2(mem_mc_s2),
     .microcode_s3(microcode_s3),
-    .use_truncation(use_truncation),
     .data_out(mem_data_out),
-    .display_out(display_out)
+    .mmio_outputs(mmio_outputs)
 );
 
 // alu

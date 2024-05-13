@@ -1,5 +1,5 @@
 OUT = build
-WARNS = -Wall
+WARNS = -Wall -Wno-DECLFILENAME
 
 .PHONY: all
 all: $(OUT)/Vtb_cpu.h

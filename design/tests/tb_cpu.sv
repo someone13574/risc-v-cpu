@@ -1,9 +1,13 @@
 module tb_cpu;
 
 logic clk;
+logic rx;
+logic [15:0] seven_segment_mmio;
 
 cpu cpu(
-    .clk(clk)
+    .clk(clk),
+    .rx(rx),
+    .seven_segment_mmio(seven_segment_mmio)
 );
 
 initial begin
