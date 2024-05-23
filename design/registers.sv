@@ -1,39 +1,32 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module registers(
     input logic clk,
     input logic clk_enable,
-    input logic [24:0] microcode_s3,
-    input logic [24:0] instruction_data_si,
-    input logic [24:0] instruction_data_s3,
+    input logic [microcode::WIDTH - 1:0] microcode_s3,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_si,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s3,
     input logic [31:0] data_in,
     output logic [31:0] data_out_a,
     output logic [31:0] data_out_b
 );
 
-// decode microcode
 logic write_enable;
 
-microcode_s3_decoder mc_s3_decode(
-    .microcode(microcode_s3),
-    .reg_write_enable(write_enable)
-);
+always_comb begin
+    write_enable = microcode::mcs3_reg_we(microcode_s3);
+end
 
-// decode read addresses
 logic [4:0] rs1;
 logic [4:0] rs2;
-
-instruction_data_decoder inst_data_si_decode(
-    .instruction_data(instruction_data_si),
-    .rs1(rs1),
-    .rs2(rs2)
-);
-
-// decode write address
 logic [4:0] rd;
 
-instruction_data_decoder inst_data_s3_decode(
-    .instruction_data(instruction_data_s3),
-    .rd(rd)
-);
+always_comb begin
+    rs1 = instruction_data::rs1(instruction_data_si);
+    rs2 = instruction_data::rs2(instruction_data_si);
+    rd  = instruction_data::rd(instruction_data_s3);
+end
 
 // memory
 logic [31:0] mem [0:15];

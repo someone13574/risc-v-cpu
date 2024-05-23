@@ -1,11 +1,13 @@
+`include "microcode.sv"
+
 module memory(
     input logic clk,
     input logic clk_enable,
     input logic [31:0] addr,
     input logic [31:0] offset_addr,
     input logic [31:0] data_in,
-    input logic [24:0] microcode_s2,
-    input logic [24:0] microcode_s3,
+    input logic [microcode::WIDTH - 1:0] microcode_s2,
+    input logic [microcode::WIDTH - 1:0] microcode_s3,
     input logic use_truncation,
     output logic [31:0] data_out,
     output logic [15:0] display_out
@@ -14,26 +16,20 @@ module memory(
 logic write_enable;
 logic enable_upper_half_s2;
 logic enable_byte_1_s2;
-microcode_s2_decoder mc_s2_decode(
-    .microcode(microcode_s2),
-    .mem_write_enable(write_enable),
-    .enable_upper_half(enable_upper_half_s2),
-    .enable_byte_1(enable_byte_1_s2)
-);
 
 logic enable_upper_half_s3_raw;
 logic enable_byte_1_s3_raw;
-microcode_s2_decoder mc_s2_decode_s3_in(
-    .microcode(microcode_s3),
-    .enable_upper_half(enable_upper_half_s3_raw),
-    .enable_byte_1(enable_byte_1_s3_raw)
-);
-
 logic sext_mem_data_out;
-microcode_s3_decoder mc_s3_decode(
-    .microcode(microcode_s3),
-    .sext_mem_data_out(sext_mem_data_out)
-);
+
+always_comb begin
+    write_enable         = microcode::mcs2_mem_we(microcode_s2);
+    enable_upper_half_s2 = microcode::mcs2_enable_upper_half(microcode_s2);
+    enable_byte_1_s2     = microcode::mcs2_enable_byte1(microcode_s2);
+
+    enable_upper_half_s3_raw = microcode::mcs2_enable_upper_half(microcode_s3);
+    enable_byte_1_s3_raw     = microcode::mcs2_enable_byte1(microcode_s3);
+    sext_mem_data_out        = microcode::mcs3_sext_mem_out(microcode_s3);
+end
 
 logic [7:0] eab_01;
 logic [7:0] eab_23;

@@ -1,3 +1,6 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module cpu(
     input logic clk,
     output logic [15:0] display_out
@@ -10,15 +13,15 @@ always_ff @(posedge clk) begin
 end
 
 // shared signals
-logic [24:0] microcode_s0;
-logic [24:0] microcode_s1;
-logic [24:0] microcode_s2;
-logic [24:0] microcode_s3;
+logic [microcode::WIDTH - 1:0] microcode_s0;
+logic [microcode::WIDTH - 1:0] microcode_s1;
+logic [microcode::WIDTH - 1:0] microcode_s2;
+logic [microcode::WIDTH - 1:0] microcode_s3;
 
-logic [24:0] instruction_data_si;
-logic [24:0] instruction_data_s0;
-logic [24:0] instruction_data_s2;
-logic [24:0] instruction_data_s3;
+logic [instruction_data::WIDTH - 1:0] instruction_data_si;
+logic [instruction_data::WIDTH - 1:0] instruction_data_s0;
+logic [instruction_data::WIDTH - 1:0] instruction_data_s2;
+logic [instruction_data::WIDTH - 1:0] instruction_data_s3;
 
 logic [29:0] pc;
 logic [29:0] pc_s0;
@@ -44,20 +47,11 @@ logic alu_out_to_mem_addr;
 logic use_pre_wb_over_mem_data;
 logic use_truncation;
 
-microcode_s2_decoder mc_s2_decode(
-    .microcode(microcode_s2),
-    .alu_out_to_mem_addr(alu_out_to_mem_addr)
-);
-
-microcode_s2_decoder mc_s2_decode_with_s3(
-    .microcode(microcode_s3),
-    .alu_out_to_mem_addr(use_truncation)
-);
-
-microcode_s3_decoder mc_s3_decode(
-    .microcode(microcode_s3),
-    .use_pre_wb_over_mem_data(use_pre_wb_over_mem_data)
-);
+always_comb begin
+    alu_out_to_mem_addr = microcode::mcs2_alu_out_over_pc(microcode_s2);
+    use_truncation = microcode::mcs2_alu_out_over_pc(microcode_s3);
+    use_pre_wb_over_mem_data = microcode::mcs3_pre_wb_over_mem_data(microcode_s3);
+end
 
 // instruction decoder
 instruction_decoder inst_decode(

@@ -1,11 +1,11 @@
 OUT = build
-WARNS = -Wall -Wno-PINMISSING -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL
+WARNS = -Wall
 
 .PHONY: all
 all: $(OUT)/Vtb_cpu.h
 
 $(OUT)/Vtb_cpu.h: *.sv tests/*.sv
-	verilator --cc --timing -sv ${WARNS} --top tb_cpu -Mdir $(OUT) $^
+	verilator --cc -sv ${WARNS} --top tb_cpu -Mdir $(OUT) $^
 
 $(OUT):
 	mkdir $(OUT)

@@ -4,7 +4,7 @@
 module lpm_ram_dq #(
     parameter LPM_WIDTH,
     parameter LPM_WIDTHAD,
-    parameter LPM_FILE
+    parameter LPM_FILE = "memory_init/eab-init-0"
 ) (
     input logic inclock,
     input logic outclock,

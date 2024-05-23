@@ -1,8 +1,11 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module pre_alu (
     input logic clk,
     input logic clk_enable,
-    input logic [24:0] microcode_s0,
-    input logic [24:0] instruction_data_s0,
+    input logic [microcode::WIDTH - 1:0] microcode_s0,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s0,
     input logic [29:0] pc_s0,
     input logic [31:0] reg_out_a,
     input logic [31:0] reg_out_b,
@@ -13,11 +16,10 @@ module pre_alu (
 logic [1:0] pre_alu_a_select;
 logic [2:0] pre_alu_b_select;
 
-microcode_s0_decoder mc_s0_decode(
-    .microcode(microcode_s0),
-    .pre_alu_a_select(pre_alu_a_select),
-    .pre_alu_b_select(pre_alu_b_select)
-);
+always_comb begin
+    pre_alu_a_select = microcode::mcs0_alu_a_mux(microcode_s0);
+    pre_alu_b_select = microcode::mcs0_alu_b_mux(microcode_s0);
+end
 
 logic [4:0] rs2;
 logic [31:0] upper_immediate;
@@ -26,15 +28,14 @@ logic [31:0] j_type_immediate;
 logic [31:0] b_type_immediate;
 logic [31:0] s_type_immediate;
 
-instruction_data_decoder inst_data_decode(
-    .instruction_data(instruction_data_s0),
-    .rs2(rs2),
-    .upper_immediate(upper_immediate),
-    .lower_immediate(lower_immediate),
-    .j_type_immediate(j_type_immediate),
-    .b_type_immediate(b_type_immediate),
-    .s_type_immediate(s_type_immediate)
-);
+always_comb begin
+    rs2 = instruction_data::rs2(instruction_data_s0);
+    upper_immediate = instruction_data::upper_immediate(instruction_data_s0);
+    lower_immediate = instruction_data::lower_immediate(instruction_data_s0);
+    j_type_immediate = instruction_data::j_type_immediate(instruction_data_s0);
+    b_type_immediate = instruction_data::b_type_immediate(instruction_data_s0);
+    s_type_immediate = instruction_data::s_type_immediate(instruction_data_s0);
+end
 
 typedef enum bit[1:0] {
     UP = 2'b00,

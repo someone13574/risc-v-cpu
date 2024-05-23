@@ -1,8 +1,11 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module pre_writeback (
     input logic clk,
     input logic clk_enable,
-    input logic [24:0] microcode_s2,
-    input logic [24:0] instruction_data_s2,
+    input logic [microcode::WIDTH - 1:0] microcode_s2,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_s2,
     input logic [31:0] alu_out,
     input logic [29:0] return_addr,
     output logic [31:0] pre_wb
@@ -11,15 +14,10 @@ module pre_writeback (
 logic [1:0] pre_writeback_select;
 logic [31:0] upper_immediate;
 
-microcode_s2_decoder mc_s2_decode(
-    .microcode(microcode_s2),
-    .pre_writeback_select(pre_writeback_select)
-);
-
-instruction_data_decoder inst_data_decode(
-    .instruction_data(instruction_data_s2),
-    .upper_immediate(upper_immediate)
-);
+always_comb begin
+    pre_writeback_select = microcode::mcs2_pre_writeback_mux(microcode_s2);
+    upper_immediate = instruction_data::upper_immediate(instruction_data_s2);
+end
 
 typedef enum bit[1:0] {
     UP = 2'b00,

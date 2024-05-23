@@ -1,17 +1,20 @@
+`include "microcode.sv"
+`include "instruction_data.sv"
+
 module control_unit(
     input logic clk,
     input logic clk_enable,
-    input logic [24:0] microcode_s0,
-    input logic [24:0] instruction_data_si,
+    input logic [microcode::WIDTH - 1:0] microcode_s0,
+    input logic [instruction_data::WIDTH - 1:0] instruction_data_si,
     input logic [31:0] reg_out_a,
     input logic [31:0] reg_out_b,
     input logic [29:0] jmp_addr,
-    output logic [24:0] microcode_s1,
-    output logic [24:0] microcode_s2,
-    output logic [24:0] microcode_s3,
-    output logic [24:0] instruction_data_s0,
-    output logic [24:0] instruction_data_s2,
-    output logic [24:0] instruction_data_s3,
+    output logic [microcode::WIDTH - 1:0] microcode_s1,
+    output logic [microcode::WIDTH - 1:0] microcode_s2,
+    output logic [microcode::WIDTH - 1:0] microcode_s3,
+    output logic [instruction_data::WIDTH - 1:0] instruction_data_s0,
+    output logic [instruction_data::WIDTH - 1:0] instruction_data_s2,
+    output logic [instruction_data::WIDTH - 1:0] instruction_data_s3,
     output logic [29:0] ret_addr,
     output logic [29:0] pc,
     output logic [29:0] pc_s0
@@ -50,7 +53,7 @@ logic mem_in_use_s4;
 logic blk_s0;
 logic prev_blk_s0;
 
-logic [24:0] instruction_data_s1;
+logic [instruction_data::WIDTH - 1:0] instruction_data_s1;
 data_dep_detector data_dep_detect(
     .microcode_s0(microcode_s0),
     .microcode_s1(microcode_s1),
@@ -115,25 +118,12 @@ always_ff @(posedge clk) begin
     end
 end
 
-microcode_s0_decoder mc_s0_decode(
-    .microcode(microcode_s0),
-    .cmp_op_select(cmp_op_select)
-);
-
-microcode_s1_decoder mc_s1_decode(
-    .microcode(microcode_s1),
-    .mem_in_use(mem_in_use)
-);
-
-microcode_s2_decoder mc_s1_really_s2_decode(
-    .microcode(microcode_s1),
-    .jump_if_branch(jump_if_branch_s1)
-);
-
-microcode_s1_decoder mc_s1_decode_with_s3(
-    .microcode(microcode_s3),
-    .mem_in_use(mem_in_use_s3)
-);
+always_comb begin
+    cmp_op_select     = microcode::mcs0_cmp_op_select(microcode_s0);
+    mem_in_use        = microcode::mcs1_mem_in_use(microcode_s1);
+    jump_if_branch_s1 = microcode::mcs2_jump_if_cmp(microcode_s1);
+    mem_in_use_s3     = microcode::mcs1_mem_in_use(microcode_s3);
+end
 
 endmodule
 
