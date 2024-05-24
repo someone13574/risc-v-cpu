@@ -27,7 +27,7 @@ pub fn create_mem_init<P: AsRef<Path>>(src: P, dst: P) {
                     format!(
                         "{}: {};    -- word: {}\n",
                         &hex::encode((idx as u16).to_be_bytes())[1..],
-                        chars[file_idx],
+                        chars[7 - file_idx],
                         chars.iter().collect::<String>()
                     )
                 })

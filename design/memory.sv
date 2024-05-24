@@ -31,68 +31,76 @@ always_comb begin
     sext_mem_data_out        = microcode::mcs3_sext_mem_out(microcode_s3);
 end
 
-logic [7:0] eab_01;
-logic [7:0] eab_23;
-logic [7:0] eab_45;
-logic [7:0] eab_67;
 
-logic [8:0] eab_01_addr;
-logic [8:0] eab_23_addr;
-logic [8:0] eab_45_addr;
-logic [8:0] eab_67_addr;
+logic [3:0] unsquizzled_eab_we;
+logic [3:0] squizzled_eab_we;
 
-logic [3:0] eab_we;
+logic [31:0] squizzled_data_in;
+
+logic [8:0] eab_10_addr;
+logic [8:0] eab_32_addr;
+logic [8:0] eab_54_addr;
+logic [8:0] eab_76_addr;
 
 always_comb begin
+    unsquizzled_eab_we <= {enable_upper_half_s2, enable_upper_half_s2, enable_byte_1_s2, 1'b1} & {4{write_enable}};
+
     case (addr[1:0])
         2'b00: begin
-            eab_01_addr = addr[10:2];
-            eab_23_addr = addr[10:2];
-            eab_45_addr = addr[10:2];
-            eab_67_addr = addr[10:2];
-            eab_we = {enable_upper_half_s2, enable_upper_half_s2, enable_byte_1_s2, 1'b1} & {4{write_enable}};
+            eab_10_addr = addr[10:2];
+            eab_32_addr = addr[10:2];
+            eab_54_addr = addr[10:2];
+            eab_76_addr = addr[10:2];
+            squizzled_eab_we = unsquizzled_eab_we;
+            squizzled_data_in = data_in;
         end
         2'b01: begin
-            eab_01_addr = addr[10:2];
-            eab_23_addr = addr[10:2];
-            eab_45_addr = addr[10:2];
-            eab_67_addr = offset_addr[10:2];
-            eab_we = {enable_upper_half_s2, enable_byte_1_s2, 1'b1, enable_upper_half_s2} & {4{write_enable}};
+            eab_10_addr = offset_addr[10:2];
+            eab_32_addr = addr[10:2];
+            eab_54_addr = addr[10:2];
+            eab_76_addr = addr[10:2];
+            squizzled_eab_we = {unsquizzled_eab_we[2:0], unsquizzled_eab_we[3]};
+            squizzled_data_in = {data_in[23:0], data_in[31:24]};
         end
         2'b10: begin
-            eab_01_addr = addr[10:2];
-            eab_23_addr = addr[10:2];
-            eab_45_addr = offset_addr[10:2];
-            eab_67_addr = offset_addr[10:2];
-            eab_we = {enable_byte_1_s2, 1'b1, enable_upper_half_s2, enable_upper_half_s2} & {4{write_enable}};
+            eab_10_addr = offset_addr[10:2];
+            eab_32_addr = offset_addr[10:2];
+            eab_54_addr = addr[10:2];
+            eab_76_addr = addr[10:2];
+            squizzled_eab_we = {unsquizzled_eab_we[1:0], unsquizzled_eab_we[3:2]};
+            squizzled_data_in = {data_in[15:0], data_in[31:16]};
         end
         2'b11: begin
-            eab_01_addr = addr[10:2];
-            eab_23_addr = offset_addr[10:2];
-            eab_45_addr = offset_addr[10:2];
-            eab_67_addr = offset_addr[10:2];
-            eab_we = {1'b1, enable_upper_half_s2, enable_upper_half_s2, enable_byte_1_s2} & {4{write_enable}};
+            eab_10_addr = offset_addr[10:2];
+            eab_32_addr = offset_addr[10:2];
+            eab_54_addr = offset_addr[10:2];
+            eab_76_addr = addr[10:2];
+            squizzled_eab_we = {unsquizzled_eab_we[0], unsquizzled_eab_we[3:1]};
+            squizzled_data_in = {data_in[7:0], data_in[31:8]};
         end
     endcase
 end
 
-logic [1:0] prev_swizzle_case;
+logic [1:0] prev_addr_align;
 always_ff @(posedge clk) begin
     if (clk_enable) begin
-        prev_swizzle_case <= addr[1:0];
+        prev_addr_align <= addr[1:0];
     end
 end
 
+logic [31:0] out_raw;
 logic [31:0] out_swizzled;
+logic [31:0] out_truncated;
+
 logic enable_byte_1_s3;
 logic enable_upper_half_s3;
 logic ext_bit;
 always_comb begin
-    case (prev_swizzle_case)
-        2'b00: out_swizzled = {eab_01, eab_23, eab_45, eab_67};
-        2'b01: out_swizzled = {eab_67, eab_01, eab_23, eab_45};
-        2'b10: out_swizzled = {eab_45, eab_67, eab_01, eab_23};
-        2'b11: out_swizzled = {eab_23, eab_45, eab_67, eab_01};
+    case (prev_addr_align)
+        2'b00: out_swizzled = {out_raw[31:0]};
+        2'b01: out_swizzled = {out_raw[ 7:0], out_raw[31: 8]};
+        2'b10: out_swizzled = {out_raw[15:0], out_raw[31:16]};
+        2'b11: out_swizzled = {out_raw[23:0], out_raw[31:24]};
     endcase
 
     enable_byte_1_s3 = enable_byte_1_s3_raw | ~use_truncation;
@@ -120,77 +128,84 @@ always_ff @(posedge clk) begin
     end
 end
 
+// 0000000x
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-0.mif")) mem0(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[0]),
-    .address(eab_01_addr),
-    .data(data_in[3:0]),
-    .q(eab_01[7:4])
+    .we(squizzled_eab_we[0]),
+    .address(eab_10_addr),
+    .data(squizzled_data_in[3:0]),
+    .q(out_raw[3:0])
 );
 
+// 000000x0
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1.mif")) mem1(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[0]),
-    .address(eab_01_addr),
-    .data(data_in[7:4]),
-    .q(eab_01[3:0])
+    .we(squizzled_eab_we[0]),
+    .address(eab_10_addr),
+    .data(squizzled_data_in[7:4]),
+    .q(out_raw[7:4])
 );
 
+// 00000x00
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2.mif")) mem2(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[1]),
-    .address(eab_23_addr),
-    .data(data_in[11:8]),
-    .q(eab_23[7:4])
+    .we(squizzled_eab_we[1]),
+    .address(eab_32_addr),
+    .data(squizzled_data_in[11:8]),
+    .q(out_raw[11:8])
 );
 
+// 0000x000
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3.mif")) mem3(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[1]),
-    .address(eab_23_addr),
-    .data(data_in[15:12]),
-    .q(eab_23[3:0])
+    .we(squizzled_eab_we[1]),
+    .address(eab_32_addr),
+    .data(squizzled_data_in[15:12]),
+    .q(out_raw[15:12])
 );
 
+// 000x0000
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4.mif")) mem4(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[2]),
-    .address(eab_45_addr),
-    .data(data_in[19:16]),
-    .q(eab_45[7:4])
+    .we(squizzled_eab_we[2]),
+    .address(eab_54_addr),
+    .data(squizzled_data_in[19:16]),
+    .q(out_raw[19:16])
 );
 
+// 00x00000
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5.mif")) mem5(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[2]),
-    .address(eab_45_addr),
-    .data(data_in[23:20]),
-    .q(eab_45[3:0])
+    .we(squizzled_eab_we[2]),
+    .address(eab_54_addr),
+    .data(squizzled_data_in[23:20]),
+    .q(out_raw[23:20])
 );
 
+// 0x000000
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6.mif")) mem6(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[3]),
-    .address(eab_67_addr),
-    .data(data_in[27:24]),
-    .q(eab_67[7:4])
+    .we(squizzled_eab_we[3]),
+    .address(eab_76_addr),
+    .data(squizzled_data_in[27:24]),
+    .q(out_raw[27:24])
 );
 
-
+// x0000000
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-7.mif")) mem7(
     .inclock(clk),
     .outclock(clk),
-    .we(eab_we[3]),
-    .address(eab_67_addr),
-    .data(data_in[31:28]),
-    .q(eab_67[3:0])
+    .we(squizzled_eab_we[3]),
+    .address(eab_76_addr),
+    .data(squizzled_data_in[31:28]),
+    .q(out_raw[31:28])
 );
 
 endmodule
