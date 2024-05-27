@@ -46,7 +46,7 @@ uint16_t encode_seven_segment(uint8_t number)
 
 void __attribute__((naked)) _start(void)
 {
-    uint16_t volatile* seven_segments = (uint16_t*)0x7fe;
+    uint16_t volatile* seven_segments = (uint16_t*)0x800;
 
     uint16_t i = 0x0;
     while (1) {

@@ -45,11 +45,9 @@ logic [31:0] mem_data_out;
 // microcode signals
 logic alu_out_to_mem_addr;
 logic use_pre_wb_over_mem_data;
-logic use_truncation;
 
 always_comb begin
     alu_out_to_mem_addr = microcode::mcs2_alu_out_over_pc(microcode_s2);
-    use_truncation = microcode::mcs2_alu_out_over_pc(microcode_s3);
     use_pre_wb_over_mem_data = microcode::mcs3_pre_wb_over_mem_data(microcode_s3);
 end
 
@@ -102,13 +100,12 @@ memory mem(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(mem_addr),
-    .offset_addr(offset_mem_addr),
+    .next_addr(offset_mem_addr),
     .data_in(reg_out_b_s2),
     .microcode_s2(microcode_s2),
     .microcode_s3(microcode_s3),
-    .use_truncation(use_truncation),
     .data_out(mem_data_out),
-    .display_out(display_out)
+    .seven_segment_out(display_out)
 );
 
 // alu
