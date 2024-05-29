@@ -3,13 +3,17 @@
 
 module cpu(
     input logic clk,
+    input logic n_reset,
+    input logic rx,
     output logic [15:0] display_out
 );
 
-// clk enable generator
+logic reset;
 logic clk_enable;
+logic ungated_clk_enable;
 always_ff @(posedge clk) begin
-    clk_enable <= ~clk_enable;
+    ungated_clk_enable <= ~ungated_clk_enable;
+    reset <= ~n_reset;
 end
 
 // shared signals
@@ -89,20 +93,50 @@ registers regs(
     .data_out_b(reg_out_b)
 );
 
+// upload receiver
+logic upload_we;
+logic [31:0] upload_addr;
+logic [7:0] upload_out;
+logic upload_complete;
+logic [2:0] upload_stage;
+
+upload_rx #(.BAUD_RATE(9600)) upload_rx(
+    .clk(clk),
+    .clk_enable(ungated_clk_enable),
+    .rx(rx),
+    .reset(reset),
+    .we(upload_we),
+    .addr(upload_addr),
+    .uart_out(upload_out),
+    .complete(upload_complete),
+    .stage(upload_stage)
+);
+
+always_comb begin
+    clk_enable = ungated_clk_enable & upload_complete;
+end
+
 // ram
 logic [31:0] mem_addr;
 logic [31:0] offset_mem_addr;
+logic [microcode::WIDTH - 1:0] mem_mc_s2;
+logic [31:0] mem_data_in;
 always_comb begin
-    mem_addr = (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
+    mem_data_in = (upload_we)           ? {24'b0, upload_out} : reg_out_b_s2;
+    mem_mc_s2   = (upload_we)           ? 25'h8000            : microcode_s2;
+    // mem_mc_s2   = (upload_we)           ? 25'h8000            : 25'h30000;
+    mem_addr    = (upload_we)           ? upload_addr         :
+                  (alu_out_to_mem_addr) ? alu_out             : {pc, 2'b0};
+    // mem_addr = (upload_we) ? upload_addr : 32'b0;
 end
 
 memory mem(
     .clk(clk),
     .clk_enable(clk_enable),
     .addr(mem_addr),
-    .next_addr(offset_mem_addr),
-    .data_in(reg_out_b_s2),
-    .microcode_s2(microcode_s2),
+    .next_addr(32'h4),
+    .data_in(mem_data_in),
+    .microcode_s2(mem_mc_s2),
     .microcode_s3(microcode_s3),
     .data_out(mem_data_out),
     .seven_segment_out(display_out)

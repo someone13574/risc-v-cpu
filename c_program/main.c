@@ -53,7 +53,7 @@ void __attribute__((naked)) _start(void)
         *seven_segments = encode_seven_segment(i);
 
         i += 1;
-        for (uint32_t n = 0; n < 250000; n++) {
+        for (uint32_t n = 0; n < 500000; n++) {
             __asm__ __volatile__("nop");
         }
     }

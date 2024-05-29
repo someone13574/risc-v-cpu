@@ -1,11 +1,13 @@
 mod create_mem_init;
 mod generate_microcode;
 mod microcode;
+mod upload_program;
 
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 use create_mem_init::create_mem_init;
+use upload_program::upload_program;
 
 use crate::generate_microcode::generate_microcode;
 
@@ -21,6 +23,8 @@ enum Commands {
     GenerateMicrocode(GenerateMicrocode),
     /// Create memory initialization file from a hex file
     CreateMemInit(CreateMemInit),
+    /// Upload to program over uart
+    UploadProgram(UploadProgram),
 }
 
 #[derive(Args)]
@@ -34,6 +38,12 @@ struct GenerateMicrocode {
 struct CreateMemInit {
     hex_file: PathBuf,
     dst: PathBuf,
+}
+
+#[derive(Args)]
+struct UploadProgram {
+    hex_file: PathBuf,
+    port: Option<PathBuf>,
 }
 
 fn main() {
@@ -51,6 +61,16 @@ fn main() {
         }
         Commands::CreateMemInit(args) => {
             create_mem_init(&args.hex_file, &args.dst);
+        }
+        Commands::UploadProgram(args) => {
+            if let Some(port) = &args.port {
+                upload_program(&args.hex_file, port);
+            } else {
+                let ports = serialport::available_ports().unwrap();
+                for port in ports {
+                    println!("{:?}", port);
+                }
+            }
         }
     }
 }

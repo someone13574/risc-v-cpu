@@ -59,7 +59,7 @@ always_comb begin
     data_out = is_mmio ? mmio_data_out : mmu_data_out;
 end
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-0.mif")) mem_block_0(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_0(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[0]),
@@ -68,7 +68,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-0.m
     .q(physical_data_out[0 * 4 + 3:0 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1.mif")) mem_block_1(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_1(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[0]),
@@ -77,7 +77,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-1.m
     .q(physical_data_out[1 * 4 + 3:1 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2.mif")) mem_block_2(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_2(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[1]),
@@ -86,7 +86,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-2.m
     .q(physical_data_out[2 * 4 + 3:2 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3.mif")) mem_block_3(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_3(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[1]),
@@ -95,7 +95,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-3.m
     .q(physical_data_out[3 * 4 + 3:3 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4.mif")) mem_block_4(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_4(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[2]),
@@ -104,7 +104,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-4.m
     .q(physical_data_out[4 * 4 + 3:4 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5.mif")) mem_block_5(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_5(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[2]),
@@ -113,7 +113,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-5.m
     .q(physical_data_out[5 * 4 + 3:5 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6.mif")) mem_block_6(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_6(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[3]),
@@ -122,7 +122,7 @@ lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-6.m
     .q(physical_data_out[6 * 4 + 3:6 * 4])
 );
 
-lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9), .LPM_FILE("memory_init/eab-init-7.mif")) mem_block_7(
+lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_7(
     .inclock(clk),
     .outclock(clk),
     .we(physical_we[3]),
