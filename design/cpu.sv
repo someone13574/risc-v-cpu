@@ -5,6 +5,7 @@ module cpu(
     input logic clk,
     input logic n_reset,
     input logic rx,
+    output logic tx,
     output logic [15:0] display_out
 );
 
@@ -93,6 +94,17 @@ registers regs(
     .data_out_b(reg_out_b)
 );
 
+// transmitter
+logic [8:0] uart_tx_data;
+logic uart_tx_sending;
+uart_tx #(.BAUD_RATE(9600)) uart_tx(
+    .clk(clk),
+    .data_in(uart_tx_data[7:0]),
+    .send(uart_tx_data[8]),
+    .sending(uart_tx_sending),
+    .tx(tx)
+);
+
 // upload receiver
 logic upload_we;
 logic [31:0] upload_addr;
@@ -116,18 +128,20 @@ always_comb begin
     clk_enable = ungated_clk_enable & upload_complete;
 end
 
+logic [15:0] tmp_display_out;
+
 // ram
 logic [31:0] mem_addr;
 logic [31:0] offset_mem_addr;
 logic [microcode::WIDTH - 1:0] mem_mc_s2;
 logic [31:0] mem_data_in;
 always_comb begin
+    display_out = {7'b0, uart_tx_data[8], tmp_display_out[15:8]};
+
     mem_data_in = (upload_we)           ? {24'b0, upload_out} : reg_out_b_s2;
     mem_mc_s2   = (upload_we)           ? 25'h8000            : microcode_s2;
-    // mem_mc_s2   = (upload_we)           ? 25'h8000            : 25'h30000;
     mem_addr    = (upload_we)           ? upload_addr         :
                   (alu_out_to_mem_addr) ? alu_out             : {pc, 2'b0};
-    // mem_addr = (upload_we) ? upload_addr : 32'b0;
 end
 
 memory mem(
@@ -138,8 +152,10 @@ memory mem(
     .data_in(mem_data_in),
     .microcode_s2(mem_mc_s2),
     .microcode_s3(microcode_s3),
+    .uart_tx_sending(uart_tx_sending),
     .data_out(mem_data_out),
-    .seven_segment_out(display_out)
+    .seven_segment_out(tmp_display_out),
+    .uart_tx_data(uart_tx_data)
 );
 
 // alu

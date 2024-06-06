@@ -8,8 +8,10 @@ module memory(
     input logic [31:0] addr,
     input logic [31:0] next_addr,
     input logic [31:0] data_in,
+    input logic uart_tx_sending,
     output logic [31:0] data_out,
-    output logic [15:0] seven_segment_out
+    output logic [15:0] seven_segment_out,
+    output logic [8:0] uart_tx_data
 );
 
 localparam BLOCK_ADDR_WIDTH = 9;
@@ -50,13 +52,23 @@ mmio #(.MMIO_ADDR_START_BIT(MMIO_ADDR_START_BIT)) mmio(
     .microcode_s2(microcode_s2),
     .addr(addr),
     .data_in(data_in),
+    .uart_tx_sending(uart_tx_sending),
     .data_out(mmio_data_out),
     .is_mmio(is_mmio),
-    .seven_segment_out(seven_segment_out)
+    .seven_segment_out(seven_segment_out),
+    .uart_tx_data(uart_tx_data)
 );
 
+logic prev_is_mmio;
+
+always_ff @(posedge clk) begin
+    if (clk_enable) begin
+        prev_is_mmio <= is_mmio;
+    end
+end
+
 always_comb begin
-    data_out = is_mmio ? mmio_data_out : mmu_data_out;
+    data_out = prev_is_mmio ? mmio_data_out : mmu_data_out;
 end
 
 lpm_ram_dq #(.LPM_WIDTH(4), .LPM_WIDTHAD(9)) mem_block_0(

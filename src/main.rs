@@ -1,12 +1,16 @@
 mod create_mem_init;
 mod generate_microcode;
 mod microcode;
+mod uart_listener;
 mod upload_program;
+
+pub const BAUD_RATE: u32 = 9600;
 
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 use create_mem_init::create_mem_init;
+use uart_listener::print_uart;
 use upload_program::upload_program;
 
 use crate::generate_microcode::generate_microcode;
@@ -65,6 +69,7 @@ fn main() {
         Commands::UploadProgram(args) => {
             if let Some(port) = &args.port {
                 upload_program(&args.hex_file, port);
+                print_uart(port);
             } else {
                 let ports = serialport::available_ports().unwrap();
                 for port in ports {

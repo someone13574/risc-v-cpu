@@ -2,7 +2,7 @@
 
 The memory of this CPU consists of 8 EABs (embedded array blocks) each of which are in the 512x4 configuration, resulting in 512 words which are 32 bit each, or 2 KiB of memory. This memory is mapped to addresses `0x0` to `0x7ff`.
 
-Beyond the address `0x7ff` is Memory Mapped IO (`mmio`). From `0x800` to `0xbff` is assigned to outputs, which can be read from and written to. From `0xc00` to `0xfff` is assigned to inputs, which can only be read from. All MMIO is word-aligned and can only be read or written as a full 32 bits.
+Beyond the address `0x7ff` is Memory Mapped IO (`mmio`). From `0x800` to `0xbff` is assigned to mmio. All MMIO is word-aligned and can only be read or written as a full 32 bits. Some MMIO is marked as read-only and will ignore write operations.
 
 <table>
 <thead>
@@ -49,16 +49,20 @@ Beyond the address `0x7ff` is Memory Mapped IO (`mmio`). From `0x800` to `0xbff`
     <td>Bottom of the stack</td>
   </tr>
   <tr>
-    <td>MMIO Inputs</td>
+    <td rowspan="3">MMIO</td>
     <td>0x800</td>
     <td>seven_segment<br></td>
     <td>UP2's FLEX_DIGIT seven segment displays</td>
   </tr>
   <tr>
-    <td>MMIO Outputs</td>
-    <td>0xc00</td>
-    <td></td>
-    <td></td>
+    <td>0x804</td>
+    <td>uart_tx_data</td>
+    <td>Byte to send over the uart</td>
+  </tr>
+  <tr>
+    <td>0x808</td>
+    <td>uart_tx_sending</td>
+    <td>Current status of the uart transmitter. 0 = idle, 1 = active. Read only.</td>
   </tr>
 </tbody>
 </table>

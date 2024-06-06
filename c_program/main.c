@@ -47,13 +47,15 @@ uint16_t encode_seven_segment(uint8_t number)
 void __attribute__((naked)) _start(void)
 {
     uint16_t volatile* seven_segments = (uint16_t*)0x800;
+    uint16_t volatile* uart_tx_data = (uint16_t*)0x804;
 
     uint16_t i = 0x0;
     while (1) {
         *seven_segments = encode_seven_segment(i);
+        *uart_tx_data = i;
 
         i += 1;
-        for (uint32_t n = 0; n < 500000; n++) {
+        for (uint32_t n = 0; n < 250000; n++) {
             __asm__ __volatile__("nop");
         }
     }

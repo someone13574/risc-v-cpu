@@ -1,6 +1,6 @@
 use std::path::Path;
 
-const BAUD_RATE: u32 = 9600;
+use crate::BAUD_RATE;
 
 pub fn upload_program<P: AsRef<Path>>(program: P, port: P) {
     sudo::escalate_if_needed().unwrap();
