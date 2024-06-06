@@ -1,4 +1,5 @@
-use crate::microcode::{generators::*, signals::*};
+use crate::microcode::generators::*;
+use crate::microcode::signals::*;
 
 struct Operation {
     microcode: u32,

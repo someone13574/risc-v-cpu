@@ -1,4 +1,6 @@
-use std::{fs, io::Write, path::Path};
+use std::fs;
+use std::io::Write;
+use std::path::Path;
 
 pub fn create_mem_init<P: AsRef<Path>>(src: P, dst: P) {
     let dst = dst.as_ref();
