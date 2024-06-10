@@ -40,15 +40,14 @@ module mmio #(
                 SEVEN_SEGMENT: begin
                     if (we) begin
                         seven_segment_out <= ~data_in[15:0];
-                        uart_tx_data <= {~uart_tx_data[8], data_in[15:8]};
                     end
-                    data_out <= {16'b0, ~seven_segment_out};
+                    data_out <= {16'b0, seven_segment_out};
                 end
                 UART_TX_DATA: begin
                     if (we) begin
-                        uart_tx_data <= ~uart_tx_data;
+                        uart_tx_data <= {~uart_tx_data[8], data_in[7:0]};
                     end
-                    data_out <= {23'b0, uart_tx_data};
+                    data_out <= {24'b0, uart_tx_data[7:0]};
                 end
                 default: data_out <= 32'b0;
             endcase
