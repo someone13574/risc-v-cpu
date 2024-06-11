@@ -31,6 +31,7 @@ SECTIONS
     {
         _stack_top = .;
         . = . + STACK_SIZE;
+        _sp = .;
         _stack_bottom = .;
     } > ram
 }
