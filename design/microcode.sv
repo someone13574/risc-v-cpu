@@ -3,7 +3,7 @@
 
 package microcode;
 
-    localparam logic [31:0] Width = 25;
+    localparam logic [31:0] WIDTH = 25;
 
     // verilator lint_off UNUSED
     function automatic logic mcs0_check_rs1_dep(input logic [WIDTH - 1:0] mc);
