@@ -18,7 +18,7 @@ module instruction_decoder (
         .data(microcode_s0)
     );
 
-    typedef enum bit [5:0] {  // Include redundent bit to avoid confusing nop and load
+    typedef enum bit [5:0] {  // Include redundant bit to avoid confusing nop and load
         LUI    = 6'b011011,
         AUIPC  = 6'b001011,
         JAL    = 6'b110111,

@@ -5,7 +5,7 @@
 | Bit(s) | Stage   | Name                       | Description                                                                                                                    |
 | ------ | ------- | ---------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | 0      | s0      | `check_rs1_dep`            | Enables data dependency check for rs1.                                                                                         |
-| 1      | s0      | `check_rs2_dep`            | Enables data dependnecy check for rs2.                                                                                         |
+| 1      | s0      | `check_rs2_dep`            | Enables data dependency check for rs2.                                                                                         |
 | 2-3    | s0      | `pre_alu_a_select`         | Used to multiplex alu input a's input ahead of time.                                                                           |
 | 4-6    | s0      | `pre_alu_b_select`         | Used to multiplex alu input b's input ahead of time.                                                                           |
 | 7-9    | s0      | `cmp_op_select`            | Selects a comparison operation for branching.                                                                                  |
