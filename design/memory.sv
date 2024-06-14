@@ -21,6 +21,7 @@ module memory (
     logic [BlockAddrWidth - 1:0] physical_addrs[4];
     logic [31:0] physical_data_in;
 
+    // convert address used by the cpu to the addresses used by the eab's (so that misaligned write work)
     mmu_encode #(
         .BLOCK_ADDR_WIDTH(BlockAddrWidth),
         .MMIO_ADDR_START_BIT(MmioAddrStartBit)
@@ -37,6 +38,7 @@ module memory (
     logic [31:0] physical_data_out;
     logic [31:0] mmu_data_out;
 
+    // swizzle & truncate / sign-extend the outputs of the eab's into a proper output signal
     mmu_decode mmu_decode (
         .clk(clk),
         .clk_enable(clk_enable),
@@ -49,6 +51,7 @@ module memory (
     logic [31:0] mmio_data_out;
     logic is_mmio;
 
+    // handle mmio addresses (they don't live in the main memory)
     mmio #(
         .MMIO_ADDR_START_BIT(MmioAddrStartBit)
     ) mmio (
@@ -64,14 +67,15 @@ module memory (
         .uart_tx_data(uart_tx_data)
     );
 
+    // delay the `is_mmio` signal one cycle because the memory read takes a cycle
     logic prev_is_mmio;
-
     always_ff @(posedge clk) begin
         if (clk_enable) begin
             prev_is_mmio <= is_mmio;
         end
     end
 
+    // switch between outputting from memory and from mmio registers
     always_comb begin
         data_out = prev_is_mmio ? mmio_data_out : mmu_data_out;
     end

@@ -1,6 +1,7 @@
 `ifndef INST_DATA_SIGNALS_GUARD
 `define INST_DATA_SIGNALS_GUARD
 
+// helper functions for getting immediates and register addresses from instructions
 package instruction_data;
 
     localparam logic [31:0] WIDTH = 25;

@@ -138,6 +138,7 @@ module cpu (
     logic [microcode::WIDTH - 1:0] mem_mc_s2;
     logic [31:0] mem_data_in;
     always_comb begin
+        // switch control of memory between the upload receiver and the cpu
         mem_data_in = (upload_we) ? {24'b0, upload_out} : reg_out_b_s2;
         mem_mc_s2   = (upload_we) ? 25'h8000 : microcode_s2;
         mem_addr    = (upload_we) ? upload_addr : (alu_out_to_mem_addr) ? alu_out : {pc, 2'b0};
@@ -204,11 +205,3 @@ module cpu (
     );
 
 endmodule
-
-// |    | mc available | start                     | available                    |
-// |----|--------------|---------------------------|------------------------------|
-// | sf | no           | mc decode & regs          | instruction                  |
-// | s0 | yes          | pre-alu & dep check & cmp | microcode & regs & inst_data |
-// | s1 | yes          | alu                       | pre-alu & dep check & cmp    |
-// | s2 | yes          | mem                       | alu out                      |
-// | s3 | yes          | writeback                 | mem                          |

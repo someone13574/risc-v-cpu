@@ -25,17 +25,21 @@ module mmu_encode #(
     logic [BLOCK_ADDR_WIDTH - 1:0] trunc_next_addr;
 
     always_comb begin
+        // get microcode signals
         is_mmio = addr[MMIO_ADDR_START_BIT];
         we = microcode::mcs2_mem_we(microcode_s2);
         we_byte1 = microcode::mcs2_enable_byte1(microcode_s2);
         we_upper_half = microcode::mcs2_enable_upper_half(microcode_s2);
 
+        // determine which eab's need to be written to (each bit is for two eabs)
         per_byte_we = {we_upper_half, we_upper_half, we_byte1, 1'b1} & {4{we & ~is_mmio}};
 
+        // ignore the first two bits of the addr (they are byte alignments)
         addr_align = addr[1:0];
         trunc_addr = addr[BLOCK_ADDR_WIDTH+1:2];
         trunc_next_addr = next_addr[BLOCK_ADDR_WIDTH+1:2];
 
+        // swizzle write enables
         case (addr_align)
             2'b00:   physical_per_byte_we = per_byte_we;
             2'b01:   physical_per_byte_we = {per_byte_we[2:0], per_byte_we[3]};
@@ -44,6 +48,7 @@ module mmu_encode #(
             default: physical_per_byte_we = 4'd0;
         endcase
 
+        // swizzle input data
         case (addr_align)
             2'b00:   physical_data_in = data_in;
             2'b01:   physical_data_in = {data_in[23:0], data_in[31:24]};
@@ -52,26 +57,31 @@ module mmu_encode #(
             default: physical_data_in = 32'd0;
         endcase
 
+        // move addrs to next addr as necessary
         case (addr_align)
             2'b00: begin
+                // when the addr is word-aligned, everything is on the same addr
                 physical_byte_addrs[0] = trunc_addr;
                 physical_byte_addrs[1] = trunc_addr;
                 physical_byte_addrs[2] = trunc_addr;
                 physical_byte_addrs[3] = trunc_addr;
             end
             2'b01: begin
+                // if it is offset by one bit, move that bit to the next addr so it can leak into the next word
                 physical_byte_addrs[0] = trunc_next_addr;
                 physical_byte_addrs[1] = trunc_addr;
                 physical_byte_addrs[2] = trunc_addr;
                 physical_byte_addrs[3] = trunc_addr;
             end
             2'b10: begin
+                // continue moving to the next addr
                 physical_byte_addrs[0] = trunc_next_addr;
                 physical_byte_addrs[1] = trunc_next_addr;
                 physical_byte_addrs[2] = trunc_addr;
                 physical_byte_addrs[3] = trunc_addr;
             end
             2'b11: begin
+                // now, as the first byte is actual the last byte of the word, everything else is on the next addr
                 physical_byte_addrs[0] = trunc_next_addr;
                 physical_byte_addrs[1] = trunc_next_addr;
                 physical_byte_addrs[2] = trunc_next_addr;

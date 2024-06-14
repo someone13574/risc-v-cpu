@@ -11,6 +11,7 @@ module pre_writeback (
     output logic [31:0] pre_wb
 );
 
+    // get signals which can be written back
     logic [ 1:0] pre_writeback_select;
     logic [31:0] upper_immediate;
 
@@ -19,12 +20,12 @@ module pre_writeback (
         upper_immediate = instruction_data::upper_immediate(instruction_data_s2);
     end
 
+    // selection enumeration
     typedef enum bit [1:0] {
         UP = 2'b00,
         ALU = 2'b01,
         RET_ADDR = 2'b10
     } pre_wb_select_e;
-
     always_ff @(posedge clk) begin
         if (clk_enable) begin
             case (pre_writeback_select)

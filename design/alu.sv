@@ -10,11 +10,13 @@ module alu (
     output logic [31:0] offset_mem_addr
 );
 
+    // get microcode signals
     logic [3:0] alu_op_select;
     always_comb begin
         alu_op_select = microcode::mcs1_alu_op_select(microcode_s1);
     end
 
+    // alu operation enumeration
     typedef enum bit [3:0] {
         ADD_ALU_OP  = 4'b0000,
         SUB_ALU_OP  = 4'b0001,
@@ -30,6 +32,7 @@ module alu (
 
     always_ff @(posedge clk) begin
         if (clk_enable) begin
+            // Execute operation
             case (alu_op_select)
                 ADD_ALU_OP:  out <= a + b;
                 SUB_ALU_OP:  out <= a - b;
@@ -44,8 +47,10 @@ module alu (
                 default:     out <= 32'b0;
             endcase
 
+            // Because memory operations can be non-word-aligned, we need to
+            // calculate the word-address following the main word address so
+            // that can be fetched as well. This is only needed for add ops.
             if (alu_op_select == ADD_ALU_OP) begin
-                // we will need a different mem addr for some eab's if misaligned
                 offset_mem_addr <= a + b + 32'h4;
             end else begin
                 offset_mem_addr <= 32'b0;

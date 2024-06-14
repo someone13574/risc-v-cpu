@@ -18,7 +18,7 @@ module instruction_decoder (
         .data(microcode_s0)
     );
 
-    typedef enum bit [5:0] {  // Include redundant bit to avoid confusing nop and load
+    typedef enum bit [5:0] {  // Include redundant 1 bit at end to avoid confusing nop and load
         LUI    = 6'b011011,
         AUIPC  = 6'b001011,
         JAL    = 6'b110111,
@@ -33,12 +33,13 @@ module instruction_decoder (
 
     logic imm_func7_enable;
     always_comb begin
-        imm_func7_enable = instruction[30] & (instruction[14:12] == 3'b101);
-        instruction_data_si = instruction[31:7];
+        imm_func7_enable = instruction[30] & (instruction[14:12] == 3'b101); // logic to determine if this type of instruction uses func7 or not
+        instruction_data_si = instruction[31:7]; // remove the opcode from the instruction
     end
 
     always_ff @(*) begin
         if (clk_enable) begin
+            // Determine address of microcode in the rom. The addresses have been picked so that simple bit toggles can work with func3 and func7
             case (instruction[6:1])
                 LUI:     microcode_lookup <= 6'h01;
                 AUIPC:   microcode_lookup <= 6'h02;

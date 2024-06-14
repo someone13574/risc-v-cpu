@@ -20,6 +20,7 @@ module control_unit (
     output logic [29:0] pc_s0
 );
 
+    // Branch condition enumeration
     typedef enum bit [2:0] {
         NULL_CMP_OP        = 3'b000,
         EQ_CMP_OP          = 3'b001,
@@ -31,25 +32,26 @@ module control_unit (
         TRUE_CMP_OP        = 3'b111
     } cmp_ops_e;
 
+    // Program counters which aren't exposed as outputs
     logic [29:0] pc_si;
     logic [29:0] pc_s1;
 
-    // branch logic
-    logic [2:0] cmp_op_select;
-    logic jump_if_branch_s1;
-    logic raw_branch;
-    logic branch;
+    // branch logic (see `docs/branching.md`)
+    logic [2:0] cmp_op_select; // branch condition selector
+    logic jump_if_branch_s1; // if this is 1 and the condition is true, execute a branch
+    logic raw_branch; // the output of the branch condition
+    logic branch; // raw_branch & jump_if_branch_s1
 
     logic data_dep;
     logic mem_in_use;
     logic mem_in_use_s3;
 
-    // shift registers
+    // shift registers (these are used to shall the pipeline while branching & mem operations are taking place)
     logic [2:0] branch_shift;
     logic [2:0] data_dep_shift;
     logic mem_in_use_s4;
 
-    // blocks propagation of s0 to s1
+    // blocks propagation of instructions from s0 to s1 because s1 is the first critical stage (a stage which has side-effects)
     logic blk_s0;
     logic prev_blk_s0;
 
@@ -83,6 +85,7 @@ module control_unit (
 
     always_ff @(posedge clk) begin
         if (clk_enable) begin
+            // program counter logic. See `branching.md`, `data-dependency.md`, and `memory-fetch-conflict.md`
             if (branch_shift[0]) begin  // jump_if_branch filtering already done
                 pc <= jmp_addr;
             end else if (data_dep_shift[0]) begin
@@ -93,6 +96,7 @@ module control_unit (
                 pc <= pc + 30'd1;
             end
 
+            // Evaluate branch condition
             case (cmp_op_select)
                 NULL_CMP_OP:        raw_branch <= 1'b0;
                 EQ_CMP_OP:          raw_branch <= reg_out_a == reg_out_b;
@@ -105,20 +109,24 @@ module control_unit (
                 default:            raw_branch <= 1'b0;
             endcase
 
+            // Move shift registers
             branch_shift <= {branch_shift[1:0], branch};
             data_dep_shift <= {data_dep_shift[1:0], data_dep};
             mem_in_use_s4 <= mem_in_use_s3;
 
             prev_blk_s0 <= blk_s0;
 
+            // Move program counters up a stage
             pc_si <= pc;
             pc_s0 <= pc_si;
             pc_s1 <= pc_s0;
 
+            // Move micrococe up a stage (and block incoming s0)
             microcode_s1 <= blk_s0 ? 25'b0 : microcode_s0;
             microcode_s2 <= microcode_s1;
             microcode_s3 <= microcode_s2;
 
+            // Move instruction data up a stage (and block incoming s0)
             instruction_data_s0 <= instruction_data_si;
             instruction_data_s1 <= blk_s0 ? 25'b0 : instruction_data_s0;
             instruction_data_s2 <= instruction_data_s1;
@@ -126,6 +134,7 @@ module control_unit (
         end
     end
 
+    // Get microcode signals
     always_comb begin
         cmp_op_select     = microcode::mcs0_cmp_op_select(microcode_s0);
         mem_in_use        = microcode::mcs1_mem_in_use(microcode_s1);
@@ -134,11 +143,3 @@ module control_unit (
     end
 
 endmodule
-
-// |    | mc available | start                     | available                    |
-// |----|--------------|---------------------------|------------------------------|
-// | sf | no           | mc decode                 | instruction                  |
-// | s0 | yes          | pre-alu & dep check & cmp | microcode & regs & inst_data |
-// | s1 | yes          | alu                       | pre-alu & dep check & cmp    |
-// | s2 | yes          | mem                       | alu out                      |
-// | s3 | yes          | writeback                 | mem                          |

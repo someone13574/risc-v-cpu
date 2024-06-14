@@ -33,6 +33,7 @@ module registers (
 
     always_ff @(posedge clk) begin
         if (clk_enable) begin
+            // the first address is always zero and cannot be written to
             if (write_enable & rd != 0) begin
                 mem[rd[3:0]] <= data_in;
             end

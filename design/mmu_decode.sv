@@ -27,11 +27,13 @@ module mmu_decode (
     logic ext_bit;
 
     always_comb begin
+        // get microcode signals
         enable_trunc    = microcode::mcs2_alu_out_over_pc(microcode_s3);
         keep_byte1      = microcode::mcs2_enable_byte1(microcode_s3) | ~enable_trunc;
         keep_upper_half = microcode::mcs2_enable_upper_half(microcode_s3) | ~enable_trunc;
         sext_data_out   = microcode::mcs3_sext_mem_out(microcode_s3);
 
+        // swizzle the eab outputs into the correct positions for the address alignment
         case (prev_addr_align)
             2'b00:   data_out_pre_trunc = physical_data_out;
             2'b01:   data_out_pre_trunc = {physical_data_out[7:0], physical_data_out[31:8]};
@@ -40,12 +42,14 @@ module mmu_decode (
             default: data_out_pre_trunc = 32'd0;
         endcase
 
+        // truncate to word, half, or byte
         trunc_data_out = {
             data_out_pre_trunc[31:16] & {16{keep_upper_half}},
             data_out_pre_trunc[15:8] & {8{keep_byte1}},
             data_out_pre_trunc[7:0]
         };
 
+        // sign-extend if necessary
         ext_bit = sext_data_out & (keep_byte1 ? data_out_pre_trunc[15] : data_out_pre_trunc[7]);
         data_out = trunc_data_out | {
         {16{ext_bit & ~keep_upper_half}},

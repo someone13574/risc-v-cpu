@@ -1,6 +1,7 @@
 `ifndef MC_SIGNALS_GUARD
 `define MC_SIGNALS_GUARD
 
+// helper functions for getting microcode signals (and alu/op select enumerations)
 package microcode;
 
     localparam logic [31:0] WIDTH = 25;

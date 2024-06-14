@@ -15,8 +15,9 @@ module mmio #(
     output logic [8:0] uart_tx_data
 );
 
+    // initialize registers
     initial begin
-        uart_tx_data <= {9{1'b1}};
+        uart_tx_data <= {9{0'b1}};
     end
 
     logic we;
@@ -25,10 +26,11 @@ module mmio #(
     always_comb begin
         we = microcode::mcs2_mem_we(microcode_s2);
 
-        is_mmio = addr[MMIO_ADDR_START_BIT];
-        mmio_addr = addr[MMIO_ADDR_START_BIT-1:0];
+        is_mmio = addr[MMIO_ADDR_START_BIT]; // this bit is used to select between normal memory and mmio registers
+        mmio_addr = addr[MMIO_ADDR_START_BIT-1:0]; // slice the addr to only contain the relevant part
     end
 
+    // addresses of mmio addrs
     typedef enum bit [15:0] {
         SEVEN_SEGMENT = 16'h0,
         UART_TX_DATA  = 16'h4
@@ -45,6 +47,7 @@ module mmio #(
                 end
                 UART_TX_DATA: begin
                     if (we) begin
+                        // Alternate bit 8 to signal that it has changed
                         uart_tx_data <= {~uart_tx_data[8], data_in[7:0]};
                     end
                     data_out <= {24'b0, uart_tx_data[7:0]};

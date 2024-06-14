@@ -13,6 +13,7 @@ module pre_alu (
     output logic [31:0] pre_alu_b
 );
 
+    // get microcode signals
     logic [1:0] pre_alu_a_select;
     logic [2:0] pre_alu_b_select;
 
@@ -21,6 +22,7 @@ module pre_alu (
         pre_alu_b_select = microcode::mcs0_alu_b_mux(microcode_s0);
     end
 
+    // get immediates which can be inputs to the alu
     logic [ 4:0] rs2;
     logic [31:0] upper_immediate;
     logic [31:0] lower_immediate;
@@ -37,6 +39,7 @@ module pre_alu (
         s_type_immediate = instruction_data::s_type_immediate(instruction_data_s0);
     end
 
+    // selection enumerations
     typedef enum bit [1:0] {
         UP   = 2'b00,
         JT   = 2'b01,
@@ -54,6 +57,7 @@ module pre_alu (
 
     always_ff @(posedge clk) begin
         if (clk_enable) begin
+            // multiplex inputs to the alu
             case (pre_alu_a_select)
                 UP: pre_alu_a <= upper_immediate;
                 JT: pre_alu_a <= j_type_immediate;
